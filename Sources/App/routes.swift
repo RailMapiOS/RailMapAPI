@@ -1,5 +1,5 @@
 import Vapor
-import Transit
+import GTFS
 
 func routes(_ app: Application) throws {
     app.get("stops") { req async -> String in
@@ -7,11 +7,11 @@ func routes(_ app: Application) throws {
             let workingDirectory = DirectoryConfiguration.detect().workingDirectory
             let protobufFilePath = workingDirectory + "sncf-tgv-gtfs-rt-trip-updates"
             let feedURL = URL(fileURLWithPath: "https://eu.ftp.opendatasoft.com/sncf/gtfs/export-ter-gtfs-last.zip")
-            let feed = Feed(contentsOfURL: feedURL)
-            
-            var response = "Feed: \(feed)/n"
-        response += "Trips: \(feed.trips?.id)"
-        
+//            let feed = Feed(contentsOfURL: feedURL)
+//            
+//            var response = "Feed: \(feed)/n"
+//        response += "Trips: \(feed.trips?.id)"
+//        
     
 //            if let stops = feed.stops {
 //                for stop in stops {
@@ -20,7 +20,7 @@ func routes(_ app: Application) throws {
 //            } else {
 //                response = "no stops: \(feed)"
 //            }
-            return response
+            return "Test docker"
     }
     
     

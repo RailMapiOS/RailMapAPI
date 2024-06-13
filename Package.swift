@@ -12,7 +12,7 @@ let package = Package(
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMinor(from: "1.26.0")),
-        .package(url: "https://github.com/richwolf/transit", .upToNextMajor(from: "0.1.3")),
+        .package(url: "https://github.com/emma-k-alexandra/GTFS.git",.upToNextMajor(from: .init(1, 0, 1)))
     ],
     targets: [
         .executableTarget(
@@ -22,7 +22,7 @@ let package = Package(
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-                .product(name: "Transit", package: "transit")
+                .product(name: "GTFS", package: "GTFS")
             ],
             swiftSettings: swiftSettings
         ),

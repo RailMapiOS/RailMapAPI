@@ -1,5 +1,5 @@
 {
-  "originHash" : "e26b747000a0e38bf0615a34a8e93ec8db31689dbfd39cada1787b37374b6be0",
+  "originHash" : "7f97d3c13e1ce2f48d78ac707f00dd76f221e88c6bc7cc90bc70bc86b04bc058",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "9f7932f22ab6f64aafadc14491e694179b7d0f6f",
         "version" : "4.14.3"
+      }
+    },
+    {
+      "identity" : "gtfs",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/emma-k-alexandra/GTFS.git",
+      "state" : {
+        "revision" : "92197f4c41aba53889a2db1e2e9d6dbe4022a223",
+        "version" : "1.0.1"
       }
     },
     {
@@ -179,15 +188,6 @@
       "state" : {
         "revision" : "f9266c85189c2751589a50ea5aec72799797e471",
         "version" : "1.3.0"
-      }
-    },
-    {
-      "identity" : "transit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/richwolf/transit",
-      "state" : {
-        "revision" : "f6f2b0c5b4ef882fe80ac7f18a18eec8e4a6d06d",
-        "version" : "0.1.3"
       }
     },
     {
