@@ -11,6 +11,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.99.3"),
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMinor(from: "1.26.0")),
+        .package(url: "https://github.com/richwolf/transit", .upToNextMajor(from: "0.1.3")),
     ],
     targets: [
         .executableTarget(
@@ -19,6 +21,8 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
+                .product(name: "Transit", package: "transit")
             ],
             swiftSettings: swiftSettings
         ),
