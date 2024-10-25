@@ -11,8 +11,12 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.99.3"),
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
-        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMinor(from: "1.26.0")),
-        .package(url: "https://github.com/emma-k-alexandra/GTFS.git",.upToNextMajor(from: .init(1, 0, 1)))
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMinor(from: "1.28.1")),
+        .package(path: "../LocomoSwift"),
+//        .package(url: "https://github.com/RailMapiOS/LocomoSwift.git", .upToNextMinor(from: "0.0.7")),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", .upToNextMinor(from: "0.9.19")),
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", .upToNextMinor(from: "4.8.0")),
+        .package(url: "https://github.com/vapor/fluent.git", .upToNextMinor(from: "4.12.0"))
     ],
     targets: [
         .executableTarget(
@@ -22,7 +26,10 @@ let package = Package(
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-                .product(name: "GTFS", package: "GTFS")
+                .product(name: "LocomoSwift", package: "LocomoSwift"),
+                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "Fluent", package: "fluent"),
             ],
             swiftSettings: swiftSettings
         ),

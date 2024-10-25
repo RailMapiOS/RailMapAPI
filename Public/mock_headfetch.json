@@ -1,0 +1,802 @@
+{
+    "pagination": {
+        "total_result": 2,
+        "start_page": 0,
+        "items_per_page": 25,
+        "items_on_page": 2
+    },
+    "feed_publishers": [
+        {
+            "id": "fr-se",
+            "name": "Quart Sud-Est Open Data",
+            "url": "",
+            "license": "ODbL"
+        },
+        {
+            "id": "osm",
+            "name": "openstreetmap",
+            "url": "https://www.openstreetmap.org/copyright",
+            "license": "ODbL"
+        }
+    ],
+    "disruptions": [],
+    "context": {
+        "current_datetime": "20240614T142256",
+        "timezone": "Europe/Paris"
+    },
+    "vehicle_journeys": [
+        {
+            "id": "vehicle_journey:STG:OCESN6221F3065612:2024-05-22T00:27:26Z",
+            "name": "6221",
+            "journey_pattern": {
+                "id": "journey_pattern:19603",
+                "name": "journey_pattern:19603"
+            },
+            "stop_times": [
+                {
+                    "arrival_time": "064200",
+                    "utc_arrival_time": "044200",
+                    "departure_time": "064200",
+                    "utc_departure_time": "044200",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87686006",
+                        "name": "Paris Gare de Lyon Hall 1 - 2",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87686006"
+                            }
+                        ],
+                        "label": "Paris Gare de Lyon Hall 1 - 2 (Paris)",
+                        "coord": {
+                            "lon": "2.373481",
+                            "lat": "48.844945"
+                        },
+                        "links": [],
+                        "equipments": []
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": false,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "085300",
+                    "utc_arrival_time": "065300",
+                    "departure_time": "085600",
+                    "utc_departure_time": "065600",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87763029",
+                        "name": "Valence TGV Rhône-Alpes Sud",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87763029"
+                            }
+                        ],
+                        "label": "Valence TGV Rhône-Alpes Sud (Alixan)",
+                        "coord": {
+                            "lon": "4.978652",
+                            "lat": "44.991907"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "4.978652;44.991907",
+                            "name": "Rue d'Alembert",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "4.978652",
+                                "lat": "44.991907"
+                            },
+                            "label": "Rue d'Alembert (Alixan)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "094200",
+                    "utc_arrival_time": "074200",
+                    "departure_time": "094600",
+                    "utc_departure_time": "074600",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87775007",
+                        "name": "Nîmes Centre",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87775007"
+                            }
+                        ],
+                        "label": "Nîmes Centre (Nîmes)",
+                        "coord": {
+                            "lon": "4.365872",
+                            "lat": "43.832313"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "4.365872;43.832313",
+                            "name": "Boulevard du Sergent Triaire",
+                            "house_number": 1,
+                            "coord": {
+                                "lon": "4.365872",
+                                "lat": "43.832313"
+                            },
+                            "label": "1 Boulevard du Sergent Triaire (Nîmes)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "101100",
+                    "utc_arrival_time": "081100",
+                    "departure_time": "101700",
+                    "utc_departure_time": "081700",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87773002",
+                        "name": "Montpellier Saint-Roch",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87773002"
+                            }
+                        ],
+                        "label": "Montpellier Saint-Roch (Montpellier)",
+                        "coord": {
+                            "lon": "3.880674",
+                            "lat": "43.604738"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.880674;43.604738",
+                            "name": "Place Auguste Gibert",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "3.880674",
+                                "lat": "43.604738"
+                            },
+                            "label": "Place Auguste Gibert (Montpellier)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "103300",
+                    "utc_arrival_time": "083300",
+                    "departure_time": "103600",
+                    "utc_departure_time": "083600",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87773200",
+                        "name": "Sète",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87773200"
+                            }
+                        ],
+                        "label": "Sète (Sète)",
+                        "coord": {
+                            "lon": "3.696571",
+                            "lat": "43.412641"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.696571;43.412641",
+                            "name": "Place André Cambon",
+                            "house_number": 78,
+                            "coord": {
+                                "lon": "3.696571",
+                                "lat": "43.412641"
+                            },
+                            "label": "78 Place André Cambon (Sète)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "104800",
+                    "utc_arrival_time": "084800",
+                    "departure_time": "105100",
+                    "utc_departure_time": "085100",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781278",
+                        "name": "Agde",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781278"
+                            }
+                        ],
+                        "label": "Agde (Agde)",
+                        "coord": {
+                            "lon": "3.466203",
+                            "lat": "43.31728"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.466203;43.31728",
+                            "name": "Impasse de la Forge",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "3.466203",
+                                "lat": "43.31728"
+                            },
+                            "label": "Impasse de la Forge (Agde)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "110300",
+                    "utc_arrival_time": "090300",
+                    "departure_time": "110600",
+                    "utc_departure_time": "090600",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781005",
+                        "name": "Béziers",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781005"
+                            }
+                        ],
+                        "label": "Béziers (Béziers)",
+                        "coord": {
+                            "lon": "3.218895",
+                            "lat": "43.336295"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.218895;43.336295",
+                            "name": "Boulevard de Verdun",
+                            "house_number": 14,
+                            "coord": {
+                                "lon": "3.218895",
+                                "lat": "43.336295"
+                            },
+                            "label": "14 Boulevard de Verdun (Béziers)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "111900",
+                    "utc_arrival_time": "091900",
+                    "departure_time": "112200",
+                    "utc_departure_time": "092200",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781104",
+                        "name": "Narbonne",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781104"
+                            }
+                        ],
+                        "label": "Narbonne (Narbonne)",
+                        "coord": {
+                            "lon": "3.005667",
+                            "lat": "43.190618"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.005667;43.190618",
+                            "name": "Boulevard Frédéric Mistral",
+                            "house_number": 1,
+                            "coord": {
+                                "lon": "3.005667",
+                                "lat": "43.190618"
+                            },
+                            "label": "1 Boulevard Frédéric Mistral (Narbonne)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "115800",
+                    "utc_arrival_time": "095800",
+                    "departure_time": "115800",
+                    "utc_departure_time": "095800",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87784009",
+                        "name": "Perpignan",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87784009"
+                            }
+                        ],
+                        "label": "Perpignan (Perpignan)",
+                        "coord": {
+                            "lon": "2.879355",
+                            "lat": "42.696096"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "2.879355;42.696096",
+                            "name": "Place Salvador Dalí",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "2.879355",
+                                "lat": "42.696096"
+                            },
+                            "label": "Place Salvador Dalí (Perpignan)"
+                        }
+                    },
+                    "pickup_allowed": false,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                }
+            ],
+            "codes": [
+                {
+                    "type": "source",
+                    "value": "OCESN6221F3065612:2024-05-22T00:27:26Z"
+                }
+            ],
+            "validity_pattern": {
+                "beginning_date": "20240610",
+                "days": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111000000000000000000000"
+            },
+            "calendars": [
+                {
+                    "week_pattern": {
+                        "monday": true,
+                        "tuesday": true,
+                        "wednesday": true,
+                        "thursday": true,
+                        "friday": true,
+                        "saturday": false,
+                        "sunday": false
+                    },
+                    "active_periods": [
+                        {
+                            "begin": "20240701",
+                            "end": "20240706"
+                        }
+                    ]
+                }
+            ],
+            "trip": {
+                "id": "STG:OCESN6221F3065612:2024-05-22T00:27:26Z",
+                "name": "6221"
+            },
+            "disruptions": [],
+            "headsign": "6221"
+        },
+        {
+            "id": "vehicle_journey:STG:OCESN6221F3080382:2024-06-12T00:23:55Z",
+            "name": "6221",
+            "journey_pattern": {
+                "id": "journey_pattern:19603",
+                "name": "journey_pattern:19603"
+            },
+            "stop_times": [
+                {
+                    "arrival_time": "064200",
+                    "utc_arrival_time": "044200",
+                    "departure_time": "064200",
+                    "utc_departure_time": "044200",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87686006",
+                        "name": "Paris Gare de Lyon Hall 1 - 2",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87686006"
+                            }
+                        ],
+                        "label": "Paris Gare de Lyon Hall 1 - 2 (Paris)",
+                        "coord": {
+                            "lon": "2.373481",
+                            "lat": "48.844945"
+                        },
+                        "links": [],
+                        "equipments": []
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": false,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "085600",
+                    "utc_arrival_time": "065600",
+                    "departure_time": "085900",
+                    "utc_departure_time": "065900",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87763029",
+                        "name": "Valence TGV Rhône-Alpes Sud",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87763029"
+                            }
+                        ],
+                        "label": "Valence TGV Rhône-Alpes Sud (Alixan)",
+                        "coord": {
+                            "lon": "4.978652",
+                            "lat": "44.991907"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "4.978652;44.991907",
+                            "name": "Rue d'Alembert",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "4.978652",
+                                "lat": "44.991907"
+                            },
+                            "label": "Rue d'Alembert (Alixan)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "094300",
+                    "utc_arrival_time": "074300",
+                    "departure_time": "094700",
+                    "utc_departure_time": "074700",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87775007",
+                        "name": "Nîmes Centre",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87775007"
+                            }
+                        ],
+                        "label": "Nîmes Centre (Nîmes)",
+                        "coord": {
+                            "lon": "4.365872",
+                            "lat": "43.832313"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "4.365872;43.832313",
+                            "name": "Boulevard du Sergent Triaire",
+                            "house_number": 1,
+                            "coord": {
+                                "lon": "4.365872",
+                                "lat": "43.832313"
+                            },
+                            "label": "1 Boulevard du Sergent Triaire (Nîmes)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "101200",
+                    "utc_arrival_time": "081200",
+                    "departure_time": "101800",
+                    "utc_departure_time": "081800",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87773002",
+                        "name": "Montpellier Saint-Roch",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87773002"
+                            }
+                        ],
+                        "label": "Montpellier Saint-Roch (Montpellier)",
+                        "coord": {
+                            "lon": "3.880674",
+                            "lat": "43.604738"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.880674;43.604738",
+                            "name": "Place Auguste Gibert",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "3.880674",
+                                "lat": "43.604738"
+                            },
+                            "label": "Place Auguste Gibert (Montpellier)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "103400",
+                    "utc_arrival_time": "083400",
+                    "departure_time": "103700",
+                    "utc_departure_time": "083700",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87773200",
+                        "name": "Sète",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87773200"
+                            }
+                        ],
+                        "label": "Sète (Sète)",
+                        "coord": {
+                            "lon": "3.696571",
+                            "lat": "43.412641"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.696571;43.412641",
+                            "name": "Place André Cambon",
+                            "house_number": 78,
+                            "coord": {
+                                "lon": "3.696571",
+                                "lat": "43.412641"
+                            },
+                            "label": "78 Place André Cambon (Sète)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "105000",
+                    "utc_arrival_time": "085000",
+                    "departure_time": "105300",
+                    "utc_departure_time": "085300",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781278",
+                        "name": "Agde",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781278"
+                            }
+                        ],
+                        "label": "Agde (Agde)",
+                        "coord": {
+                            "lon": "3.466203",
+                            "lat": "43.31728"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.466203;43.31728",
+                            "name": "Impasse de la Forge",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "3.466203",
+                                "lat": "43.31728"
+                            },
+                            "label": "Impasse de la Forge (Agde)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "110600",
+                    "utc_arrival_time": "090600",
+                    "departure_time": "110900",
+                    "utc_departure_time": "090900",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781005",
+                        "name": "Béziers",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781005"
+                            }
+                        ],
+                        "label": "Béziers (Béziers)",
+                        "coord": {
+                            "lon": "3.218895",
+                            "lat": "43.336295"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.218895;43.336295",
+                            "name": "Boulevard de Verdun",
+                            "house_number": 14,
+                            "coord": {
+                                "lon": "3.218895",
+                                "lat": "43.336295"
+                            },
+                            "label": "14 Boulevard de Verdun (Béziers)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "112200",
+                    "utc_arrival_time": "092200",
+                    "departure_time": "112500",
+                    "utc_departure_time": "092500",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87781104",
+                        "name": "Narbonne",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87781104"
+                            }
+                        ],
+                        "label": "Narbonne (Narbonne)",
+                        "coord": {
+                            "lon": "3.005667",
+                            "lat": "43.190618"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "3.005667;43.190618",
+                            "name": "Boulevard Frédéric Mistral",
+                            "house_number": 1,
+                            "coord": {
+                                "lon": "3.005667",
+                                "lat": "43.190618"
+                            },
+                            "label": "1 Boulevard Frédéric Mistral (Narbonne)"
+                        }
+                    },
+                    "pickup_allowed": true,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                },
+                {
+                    "arrival_time": "115800",
+                    "utc_arrival_time": "095800",
+                    "departure_time": "115800",
+                    "utc_departure_time": "095800",
+                    "headsign": "6221",
+                    "stop_point": {
+                        "id": "stop_point:STG:StopPoint:OCETGV INOUI-87784009",
+                        "name": "Perpignan",
+                        "codes": [
+                            {
+                                "type": "source",
+                                "value": "StopPoint:OCETGV INOUI-87784009"
+                            }
+                        ],
+                        "label": "Perpignan (Perpignan)",
+                        "coord": {
+                            "lon": "2.879355",
+                            "lat": "42.696096"
+                        },
+                        "links": [],
+                        "equipments": [],
+                        "address": {
+                            "id": "2.879355;42.696096",
+                            "name": "Place Salvador Dalí",
+                            "house_number": 0,
+                            "coord": {
+                                "lon": "2.879355",
+                                "lat": "42.696096"
+                            },
+                            "label": "Place Salvador Dalí (Perpignan)"
+                        }
+                    },
+                    "pickup_allowed": false,
+                    "drop_off_allowed": true,
+                    "skipped_stop": false
+                }
+            ],
+            "codes": [
+                {
+                    "type": "source",
+                    "value": "OCESN6221F3080382:2024-06-12T00:23:55Z"
+                }
+            ],
+            "validity_pattern": {
+                "beginning_date": "20240610",
+                "days": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001111100111110011100"
+            },
+            "calendars": [
+                {
+                    "week_pattern": {
+                        "monday": true,
+                        "tuesday": true,
+                        "wednesday": true,
+                        "thursday": true,
+                        "friday": true,
+                        "saturday": false,
+                        "sunday": false
+                    },
+                    "active_periods": [
+                        {
+                            "begin": "20240612",
+                            "end": "20240629"
+                        }
+                    ]
+                }
+            ],
+            "trip": {
+                "id": "STG:OCESN6221F3080382:2024-06-12T00:23:55Z",
+                "name": "6221"
+            },
+            "disruptions": [],
+            "headsign": "6221"
+        }
+    ],
+    "links": [
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/stop_points/{stop_point.id}",
+            "templated": true,
+            "rel": "stop_points",
+            "type": "stop_point"
+        },
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/trips/{trip.id}",
+            "templated": true,
+            "rel": "trips",
+            "type": "trip"
+        },
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/vehicle_journeys/{vehicle_journeys.id}",
+            "templated": true,
+            "rel": "vehicle_journeys",
+            "type": "vehicle_journeys"
+        },
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/journey_patterns/{journey_pattern.id}",
+            "templated": true,
+            "rel": "journey_patterns",
+            "type": "journey_pattern"
+        },
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/addresses/{address.id}",
+            "templated": true,
+            "rel": "addresses",
+            "type": "address"
+        },
+        {
+            "href": "https://api.navitia.io/v1/coverage/fr-se/physical_modes/physical_mode:Train/vehicle_journeys?headsign=6221&%0A=",
+            "type": "first",
+            "templated": false
+        }
+    ]
+}
