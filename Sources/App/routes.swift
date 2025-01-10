@@ -190,7 +190,7 @@ func routes(_ app: Application) throws {
         
         // Vérifier si le trajet est en cache
         if let cachedJourneys = journeyStation.getJourneys(for: .headsign(headsign)) {
-            return cachedJourneys // Retourne directement les trajets depuis le cache
+            return cachedJourneys
         }
         
         // Si le trajet n'est pas en cache, on charge le feed
