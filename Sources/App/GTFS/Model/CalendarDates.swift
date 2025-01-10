@@ -28,7 +28,7 @@
 //
 ///// Représente une exception de service pour une date donnée
 //public struct CalendarDate: Hashable, Identifiable {
-//    public var id = UUID()  // Propriété initialisée
+//    public var id = UUID()
 //    public var serviceID: LSID
 //    public var date: Date
 //    public var exceptionType: Int

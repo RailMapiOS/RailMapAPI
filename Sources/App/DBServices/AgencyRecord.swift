@@ -5,7 +5,6 @@
 //  Created by Jérémie Patot on 11/10/2024.
 //
 
-
 import Fluent
 import LocomoSwift
 import Vapor
