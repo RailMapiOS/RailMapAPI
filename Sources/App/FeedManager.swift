@@ -157,3 +157,25 @@ public final class FeedManager {
         }
     }
 }
+
+extension FeedManager {
+    private func saveCalendarDates(_ calendarDates: [CalendarDate], feedID: UUID) async throws {
+        for calendarDate in calendarDates {
+            let record = CalendarDateRecord(
+                serviceID: calendarDate.serviceID,
+                date: calendarDate.date,
+                exceptionType: calendarDate.exceptionType,
+                feedID: feedID
+            )
+            try await record.save(on: db)
+        }
+    }
+    
+    private func loadCalendarDatesFromDB(feedID: UUID) async throws -> [CalendarDate] {
+        let records = try await CalendarDateRecord.query(on: db)
+            .filter(\.$feed.$id == feedID)
+            .all()
+        
+        return records.map { $0.toCalendarDate() }
+    }
+}
