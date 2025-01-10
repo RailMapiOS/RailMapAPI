@@ -68,9 +68,10 @@ public final class FeedManager {
         let trips = try await TripRecord.query(on: db).filter(\TripRecord.$feed.$id == record.id!).all()
         let stops = try await StopRecord.query(on: db).filter(\StopRecord.$feed.$id == record.id!).all()
         let stopTimes = try await StopTimeRecord.query(on: db).filter(\StopTimeRecord.$feed.$id == record.id!).with(\.$trip).all()
+        let calendarDates = try await CalendarDateRecord.query(on: db).filter(\CalendarDateRecord.$feed.$id == record.id!).all()
 
         // Créer un Feed à partir des données
-        return try createFeed(from: agencies, trips: trips, stops: stops, stopTimes: stopTimes)
+        return try createFeed(from: agencies, trips: trips, stops: stops, stopTimes: stopTimes, calendarDates: calendarDates)
     }
 
     /// Sauvegarde un Feed dans la base de données et met à jour l'horodatage de la dernière mise à jour.
@@ -112,6 +113,12 @@ public final class FeedManager {
             } else {
                 print("Aucun stopTime à sauvegarder.")
             }
+            
+            if let calendarDates = feed.calendarDates?.dates {
+                try await saveRecords(calendarDates, feedID: feedRecord.id!, as: CalendarDateRecord.self)
+            } else {
+                print("Aucun calendarDates à sauvegarder.")
+            }
 
         }
     }
@@ -125,19 +132,21 @@ public final class FeedManager {
 
 
     /// Crée un `Feed` à partir des données extraites de la base de données
-    private func createFeed(from agencies: [AgencyRecord], trips: [TripRecord], stops: [StopRecord], stopTimes: [StopTimeRecord]) throws -> Feed {
+    private func createFeed(from agencies: [AgencyRecord], trips: [TripRecord], stops: [StopRecord], stopTimes: [StopTimeRecord], calendarDates: [CalendarDateRecord]) throws -> Feed {
         let agenciesFormatted: [Agency] = agencies.map { $0.toAgency() }
         let agencyModels: LocomoSwift.Agencies = LocomoSwift.Agencies(agenciesFormatted)
         let tripModels = Trips(trips.map { $0.toTrip() })
         let stopModels = Stops(stops.map { $0.toStop() })
         let stopTimes = StopTimes(stopTimes.map { $0.toStopTimes() })
+        let calendarDates = CalendarDates(calendarDates.map { $0.toCalendarDate() })
 
         // Utiliser l'init personnalisé du Feed
         return try Feed(
             agencices: agencyModels,
             stops: stopModels,
             trips: tripModels,
-            stopTimes: stopTimes
+            stopTimes: stopTimes,
+            calendarDates: calendarDates
         )
     }
 
