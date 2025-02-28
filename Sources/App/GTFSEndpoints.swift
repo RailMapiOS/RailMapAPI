@@ -58,7 +58,7 @@ struct GTFSEndpoint: Hashable {
                  refreshFrequency: .everyDay),
     GTFSEndpoint(agency: .SNCF,
                  serviceType: .TGV,
-                 url: "https://eu.ftp.opendatasoft.com/sncf/gtfs/export_gtfs_voyages.zip",
+                 url: "https://eu.ftp.opendatasoft.com/sncf/plandata/export_gtfs_voyages.zip",
                  refreshFrequency: .everyDay),
     GTFSEndpoint(agency: .SNCF,
                  serviceType: .Intercite,

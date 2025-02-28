@@ -126,7 +126,14 @@ public final class FeedManager {
     private func saveRecords<T: FeedModelRecord>(_ records: [T.Source], feedID: UUID, as recordType: T.Type) async throws where T: Model {
         for record in records {
             let dbRecord = T(from: record, feedID: feedID)
-            try await dbRecord.save(on: db)
+            do {
+                try await dbRecord.save(on: db)
+            } catch {
+                if error.localizedDescription.contains("UNIQUE constraint failed") {
+                    continue
+                }
+                throw error
+            }
         }
     }
 
