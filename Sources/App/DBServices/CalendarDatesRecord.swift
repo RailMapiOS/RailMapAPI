@@ -61,3 +61,19 @@ final class CalendarDateRecord: Model, Content {
         )
     }
 }
+
+struct CreateCalendarDateRecord: AsyncMigration {
+    func prepare(on database: Database) async throws {
+        try await database.schema("calendar_dates")
+            .id()
+            .field("service_id", .string, .required)
+            .field("date", .datetime, .required)
+            .field("exception_type", .int8, .required)
+            .field("feed_id", .uuid, .required, .references("feeds", "id"))
+            .create()
+    }
+
+    func revert(on database: Database) async throws {
+        try await database.schema("calendar_dates").delete()
+    }
+}

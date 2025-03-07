@@ -14,6 +14,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateTripRecord())
     app.migrations.add(CreateStopRecord())
     app.migrations.add(CreateStopTimeRecord())
+    app.migrations.add(CreateCalendarDateRecord())
 
     // Migrer automatiquement la base de données
     try await app.autoMigrate()
