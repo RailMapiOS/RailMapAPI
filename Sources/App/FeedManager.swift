@@ -1,60 +1,47 @@
-//
-//  FeedManager.swift
-//  RailMapAPI
-//
-//  Created by Jérémie Patot on 11/10/2024.
-//
-
 import Fluent
 import Vapor
 import LocomoSwift
 
-public final class FeedManager {
-    
-    private var feedCache: [GTFSEndpoint: (feed: Feed, lastUpdate: Date)] = [:]  // Cache avec horodatage
-    private let db: Database
+/// App-scoped feed manager that persists across requests so in-memory cache actually works.
+final class FeedManager: Sendable {
+    private let cache = FeedCache()
+    private let db: any Database
 
-    init(database: Database) {
+    init(database: any Database) {
         self.db = database
     }
 
-    /// Récupère un `Feed` soit depuis le cache (s'il est encore valide), soit depuis la base de données, soit en le téléchargeant.
-    func getFeed(for endpoint: GTFSEndpoint) async throws -> Feed {
-        // Vérifier si le feed est dans le cache et encore valide
-        if let cachedFeed = feedCache[endpoint] {
-            if isFeedStillValid(cachedFeed.lastUpdate, refreshFrequency: endpoint.refreshFrequency) {
-                print("Feed trouvé dans le cache et encore valide.")
-                return cachedFeed.feed
-            } else {
-                print("Feed dans le cache, mais expiré. Rafraîchissement en cours.")
-            }
+    func getFeed(for endpoint: GTFSEndpoint, logger: Logger) async throws -> Feed {
+        // Check in-memory cache
+        if let cached = await cache.get(endpoint),
+           isFeedStillValid(cached.lastUpdate, refreshFrequency: endpoint.refreshFrequency) {
+            logger.info("Feed cache hit for \(endpoint.agency.rawValue)/\(endpoint.serviceType.rawValue)")
+            return cached.feed
         }
 
-        // Vérifier si le feed est dans la base de données
+        // Check database
         if let storedFeed = try await loadFeedFromDB(endpoint: endpoint) {
-            feedCache[endpoint] = (storedFeed, Date())
+            await cache.set(endpoint, feed: storedFeed)
+            logger.info("Feed loaded from DB for \(endpoint.agency.rawValue)/\(endpoint.serviceType.rawValue)")
             return storedFeed
         }
 
-        // Télécharger le feed s'il n'est ni en cache ni en base de données
+        // Download as last resort
         let downloadedFeed = try await downloadFeed(from: endpoint.url)
         try await saveFeedToDB(feed: downloadedFeed, endpoint: endpoint)
-        feedCache[endpoint] = (downloadedFeed, Date())  // Mettre en cache avec l'horodatage actuel
+        await cache.set(endpoint, feed: downloadedFeed)
+        logger.info("Feed downloaded for \(endpoint.agency.rawValue)/\(endpoint.serviceType.rawValue)")
         return downloadedFeed
     }
 
-    /// Télécharge un Feed à partir d'une URL.
     private func downloadFeed(from urlString: String) async throws -> Feed {
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
-
-        let feed = try await Feed(contentsOfURL: url)
-        print("Feed téléchargé avec succès depuis \(urlString)")
-        return feed
+        return try await Feed(contentsOfURL: url)
     }
 
-    /// Charge un Feed depuis la base de données Fluent.
+    /// Loads feed data from DB with parallel queries.
     private func loadFeedFromDB(endpoint: GTFSEndpoint) async throws -> Feed? {
         guard let record = try await FeedRecord.query(on: db)
             .filter(\.$url == endpoint.url)
@@ -63,135 +50,100 @@ public final class FeedManager {
             return nil
         }
 
-        // Charger les données liées au Feed depuis la base de données
-        let agencies = try await AgencyRecord.query(on: db).filter(\AgencyRecord.$feed.$id == record.id!).all()
-        let trips = try await TripRecord.query(on: db).filter(\TripRecord.$feed.$id == record.id!).all()
-        let stops = try await StopRecord.query(on: db).filter(\StopRecord.$feed.$id == record.id!).all()
-        let stopTimes = try await StopTimeRecord.query(on: db).filter(\StopTimeRecord.$feed.$id == record.id!).with(\.$trip).all()
-        let calendarDates = try await CalendarDateRecord.query(on: db).filter(\CalendarDateRecord.$feed.$id == record.id!).all()
+        let feedID = record.id!
 
-        // Créer un Feed à partir des données
+        async let agenciesQuery = AgencyRecord.query(on: db).filter(\AgencyRecord.$feed.$id == feedID).all()
+        async let tripsQuery = TripRecord.query(on: db).filter(\TripRecord.$feed.$id == feedID).all()
+        async let stopsQuery = StopRecord.query(on: db).filter(\StopRecord.$feed.$id == feedID).all()
+        async let stopTimesQuery = StopTimeRecord.query(on: db).filter(\StopTimeRecord.$feed.$id == feedID).with(\.$trip).all()
+        async let calendarDatesQuery = CalendarDateRecord.query(on: db).filter(\CalendarDateRecord.$feed.$id == feedID).all()
+
+        let (agencies, trips, stops, stopTimes, calendarDates) = try await (
+            agenciesQuery, tripsQuery, stopsQuery, stopTimesQuery, calendarDatesQuery
+        )
+
         return try createFeed(from: agencies, trips: trips, stops: stops, stopTimes: stopTimes, calendarDates: calendarDates)
     }
 
-    /// Sauvegarde un Feed dans la base de données et met à jour l'horodatage de la dernière mise à jour.
     private func saveFeedToDB(feed: Feed, endpoint: GTFSEndpoint) async throws {
-        // Rechercher si le feed existe déjà dans la base de données
         if let record = try await FeedRecord.query(on: db)
             .filter(\.$url == endpoint.url)
             .first()
         {
-            // Mettre à jour la date de mise à jour
             record.updateLastUpdateDate(to: Date())
             try await record.update(on: db)
         } else {
-            // Créer un nouvel enregistrement si aucun n'existe
             let feedRecord = FeedRecord(url: endpoint.url, lastUpdate: Date())
             try await feedRecord.save(on: db)
-            
-            // Sauvegarder les agences, trips, stops, etc.
+            let feedID = feedRecord.id!
+
             if let agencies = feed.agencies?.agencies {
-                try await saveRecords(agencies, feedID: feedRecord.id!, as: AgencyRecord.self)
-            } else {
-                print("Aucune agence à sauvegarder.")
+                try await saveRecords(agencies, feedID: feedID, as: AgencyRecord.self)
             }
-
             if let trips = feed.trips?.trips {
-                try await saveRecords(trips, feedID: feedRecord.id!, as: TripRecord.self)
-            } else {
-                print("Aucun trip à sauvegarder.")
+                try await saveRecords(trips, feedID: feedID, as: TripRecord.self)
             }
-
             if let stops = feed.stops?.stops {
-                try await saveRecords(stops, feedID: feedRecord.id!, as: StopRecord.self)
-            } else {
-                print("Aucun stop à sauvegarder.")
+                try await saveRecords(stops, feedID: feedID, as: StopRecord.self)
             }
-            
             if let stopTimes = feed.stopTimes?.stopTimes {
-                try await saveRecords(stopTimes, feedID: feedRecord.id!, as: StopTimeRecord.self)
-            } else {
-                print("Aucun stopTime à sauvegarder.")
+                try await saveRecords(stopTimes, feedID: feedID, as: StopTimeRecord.self)
             }
-            
             if let calendarDates = feed.calendarDates?.dates {
-                try await saveRecords(calendarDates, feedID: feedRecord.id!, as: CalendarDateRecord.self)
-            } else {
-                print("Aucun calendarDates à sauvegarder.")
+                try await saveRecords(calendarDates, feedID: feedID, as: CalendarDateRecord.self)
             }
-
         }
     }
 
     private func saveRecords<T: FeedModelRecord>(_ records: [T.Source], feedID: UUID, as recordType: T.Type) async throws where T: Model {
-        for record in records {
-            let dbRecord = T(from: record, feedID: feedID)
-            do {
-                try await dbRecord.save(on: db)
-            } catch {
-                if error.localizedDescription.contains("UNIQUE constraint failed") {
-                    continue
+        // Batch save: create all records first, then save in chunks
+        let batchSize = 500
+        for chunk in stride(from: 0, to: records.count, by: batchSize) {
+            let end = min(chunk + batchSize, records.count)
+            for i in chunk..<end {
+                let dbRecord = T(from: records[i], feedID: feedID)
+                do {
+                    try await dbRecord.save(on: db)
+                } catch {
+                    if error.localizedDescription.contains("UNIQUE constraint failed") {
+                        continue
+                    }
+                    throw error
                 }
-                throw error
             }
         }
     }
 
-
-    /// Crée un `Feed` à partir des données extraites de la base de données
     private func createFeed(from agencies: [AgencyRecord], trips: [TripRecord], stops: [StopRecord], stopTimes: [StopTimeRecord], calendarDates: [CalendarDateRecord]) throws -> Feed {
-        let agenciesFormatted: [Agency] = agencies.map { $0.toAgency() }
-        let agencyModels: LocomoSwift.Agencies = LocomoSwift.Agencies(agenciesFormatted)
+        let agencyModels = LocomoSwift.Agencies(agencies.map { $0.toAgency() })
         let tripModels = Trips(trips.map { $0.toTrip() })
         let stopModels = Stops(stops.map { $0.toStop() })
-        let stopTimes = StopTimes(stopTimes.map { $0.toStopTimes() })
-        let calendarDates = CalendarDates(calendarDates.map { $0.toCalendarDate() })
+        let stopTimeModels = StopTimes(stopTimes.map { $0.toStopTimes() })
+        let calendarDateModels = CalendarDates(calendarDates.map { $0.toCalendarDate() })
 
-        // Utiliser l'init personnalisé du Feed
         return try Feed(
             agencices: agencyModels,
             stops: stopModels,
             trips: tripModels,
-            stopTimes: stopTimes,
-            calendarDates: calendarDates
+            stopTimes: stopTimeModels,
+            calendarDates: calendarDateModels
         )
     }
 
-    /// Vérifie si le `Feed` est encore valide en fonction de la date de la dernière mise à jour et de la fréquence de rafraîchissement.
     private func isFeedStillValid(_ lastUpdate: Date, refreshFrequency: RefreshRate) -> Bool {
-        let now = Date()
-        return now.timeIntervalSince(lastUpdate) < refreshFrequency.rawValue
-    }
-    
-    func removeTemporaryFolder(at path: String) {
-        let fileManager = FileManager.default
-        do {
-            try fileManager.removeItem(atPath: path)
-            print("Dossier temporaire supprimé : \(path)")
-        } catch let error {
-            print("Erreur lors de la suppression du dossier temporaire : \(error)")
-        }
+        Date().timeIntervalSince(lastUpdate) < refreshFrequency.rawValue
     }
 }
 
-extension FeedManager {
-    private func saveCalendarDates(_ calendarDates: [CalendarDate], feedID: UUID) async throws {
-        for calendarDate in calendarDates {
-            let record = CalendarDateRecord(
-                serviceID: calendarDate.serviceID,
-                date: calendarDate.date,
-                exceptionType: calendarDate.exceptionType,
-                feedID: feedID
-            )
-            try await record.save(on: db)
-        }
+/// Actor-based thread-safe feed cache.
+private actor FeedCache {
+    private var storage: [GTFSEndpoint: (feed: Feed, lastUpdate: Date)] = [:]
+
+    func get(_ endpoint: GTFSEndpoint) -> (feed: Feed, lastUpdate: Date)? {
+        storage[endpoint]
     }
-    
-    private func loadCalendarDatesFromDB(feedID: UUID) async throws -> [CalendarDate] {
-        let records = try await CalendarDateRecord.query(on: db)
-            .filter(\.$feed.$id == feedID)
-            .all()
-        
-        return records.map { $0.toCalendarDate() }
+
+    func set(_ endpoint: GTFSEndpoint, feed: Feed) {
+        storage[endpoint] = (feed, Date())
     }
 }

@@ -9,7 +9,7 @@ import Vapor
 import Foundation
 
 // MARK: - VehiculeJourneys
-public struct VehicleJourneys: Codable {
+public struct VehicleJourneys: Codable, Sendable {
     
     let pagination: Pagination
     let feedPublishers: [FeedPublisher]
@@ -28,7 +28,7 @@ public struct VehicleJourneys: Codable {
 }
 
 // MARK: - Context
-struct Context: Codable {
+struct Context: Codable, Sendable {
     let currentDatetime, timezone: String
 
     enum CodingKeys: String, CodingKey {
@@ -38,14 +38,14 @@ struct Context: Codable {
 }
 
 // MARK: - FeedPublisher
-struct FeedPublisher: Codable {
+struct FeedPublisher: Codable, Sendable {
     let id, name: String
     let url: String
     let license: String
 }
 
 // MARK: - Link
-struct Link: Codable {
+struct Link: Codable, Sendable {
     let href: String
     let templated: Bool
     let rel: String?
@@ -53,7 +53,7 @@ struct Link: Codable {
 }
 
 // MARK: - Pagination
-struct Pagination: Codable {
+struct Pagination: Codable, Sendable {
     let totalResult, startPage, itemsPerPage, itemsOnPage: Int
 
     enum CodingKeys: String, CodingKey {
@@ -65,7 +65,7 @@ struct Pagination: Codable {
 }
 
 // MARK: - VehicleJourney
-public struct VehicleJourney: Codable {
+public struct VehicleJourney: Codable, Sendable {
     let id, name: String
     let journeyPattern: JourneyPattern
     let stopTimes: [VehicleStopTime]
@@ -87,7 +87,7 @@ public struct VehicleJourney: Codable {
 }
 
 // MARK: - Calendar
-struct VehicleCalendar: Codable {
+struct VehicleCalendar: Codable, Sendable {
     let weekPattern: WeekPattern
     let exceptions: [Exception]?
     let activePeriods: [ActivePeriod]
@@ -100,45 +100,45 @@ struct VehicleCalendar: Codable {
 }
 
 // MARK: - ActivePeriod
-struct ActivePeriod: Codable {
+struct ActivePeriod: Codable, Sendable {
     let begin, end: String
 }
 
 // MARK: - Exception
-struct Exception: Codable {
+struct Exception: Codable, Sendable {
     let datetime: String
     let type: ExceptionType
 }
 
-enum ExceptionType: String, Codable {
+enum ExceptionType: String, Codable, Sendable {
     case remove = "remove"
     case add = "add"
 }
 
 // MARK: - WeekPattern
-struct WeekPattern: Codable {
+struct WeekPattern: Codable, Sendable {
     let monday, tuesday, wednesday, thursday: Bool
     let friday, saturday, sunday: Bool
 }
 
 // MARK: - Code
-struct Code: Codable {
+struct Code: Codable, Sendable {
     let type: CodeType
     let value: String
 }
 
-enum CodeType: String, Codable {
+enum CodeType: String, Codable, Sendable {
     case gtfsStopCode = "gtfs_stop_code"
     case source = "source"
 }
 
 // MARK: - JourneyPattern
-struct JourneyPattern: Codable {
+struct JourneyPattern: Codable, Sendable {
     let id, name: String
 }
 
 // MARK: - StopTime
-public struct VehicleStopTime: Codable {
+public struct VehicleStopTime: Codable, Sendable {
     let arrivalTime, utcArrivalTime, departureTime, utcDepartureTime: String
     let headsign: String
     let stopPoint: StopPoint
@@ -158,7 +158,7 @@ public struct VehicleStopTime: Codable {
 }
 
 // MARK: - StopPoint
-struct StopPoint: Codable {
+struct StopPoint: Codable, Sendable {
     let id, name: String
     let codes: [Code]
     let label: String
@@ -167,12 +167,12 @@ struct StopPoint: Codable {
 }
 
 // MARK: - Coord
-struct Coord: Codable {
+struct Coord: Codable, Sendable {
     let lon, lat: String
 }
 
 // MARK: - ValidityPattern
-public struct ValidityPattern: Codable {
+public struct ValidityPattern: Codable, Sendable {
     let beginningDate, days: String
 
     enum CodingKeys: String, CodingKey {
@@ -183,7 +183,7 @@ public struct ValidityPattern: Codable {
 
 // MARK: - Encode/decode helpers
 
-class JSONNullVJ: Codable, Hashable {
+final class JSONNullVJ: Codable, Hashable, @unchecked Sendable {
 
     public static func == (lhs: JSONNullVJ, rhs: JSONNullVJ) -> Bool {
         return true
@@ -212,7 +212,7 @@ class JSONNullVJ: Codable, Hashable {
     }
 }
 
-class JSONCodingKeyVJ: CodingKey {
+final class JSONCodingKeyVJ: CodingKey, Sendable {
     let key: String
 
     required init?(intValue: Int) {
@@ -232,7 +232,7 @@ class JSONCodingKeyVJ: CodingKey {
     }
 }
 
-class JSONAnyVJ: Codable {
+final class JSONAnyVJ: Codable, @unchecked Sendable {
 
     let value: Any
 
@@ -427,7 +427,7 @@ class JSONAnyVJ: Codable {
     }
 }
 
-class JSONCodingKey: CodingKey {
+final class JSONCodingKey: CodingKey, Sendable {
     let key: String
 
     required init?(intValue: Int) {
@@ -447,13 +447,16 @@ class JSONCodingKey: CodingKey {
     }
 }
 
+private let sharedJSONEncoder: JSONEncoder = {
+    let encoder = JSONEncoder()
+    return encoder
+}()
+
 extension VehicleJourneys: AsyncResponseEncodable {
     public func encodeResponse(for request: Request) async throws -> Response {
-        let jsonData = try JSONEncoder().encode(self)
-        
+        let jsonData = try sharedJSONEncoder.encode(self)
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/json")
-        
         return Response(status: .ok, headers: headers, body: .init(data: jsonData))
     }
 }
