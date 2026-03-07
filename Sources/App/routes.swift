@@ -62,6 +62,10 @@ func routes(_ app: Application) throws {
         return fullVehicleJourneys
     }
 
+    // Route geometry endpoint (proxies signal.eu.org OSRM train router)
+    let routeGeometry = RouteGeometryController()
+    app.get("route", "geometry", use: routeGeometry.getGeometry)
+
     app.get("hello") { req async -> String in
         "Hello, world!"
     }
