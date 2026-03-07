@@ -1,14 +1,6 @@
-//
-//  GTFSEndpoints.swift
-//  RailMapAPI
-//
-//  Created by Jérémie Patot on 04/10/2024.
-//
-
 import Foundation
 
-// Enumération pour les agences
-enum Agencies: String {
+enum Agencies: String, Sendable {
     case SNCF = "sncf"
     case SNCB = "sncb"
     case SBB = "sbb"
@@ -16,8 +8,7 @@ enum Agencies: String {
     case DB = "db"
 }
 
-// Enumération pour les types de service (TER, TGV, Intercités, etc.)
-enum ServiceType: String {
+enum ServiceType: String, Sendable {
     case TER = "ter"
     case TGV = "tgv"
     case Intercite = "intercité"
@@ -26,7 +17,7 @@ enum ServiceType: String {
     case All = "all"
 }
 
-enum RefreshRate: TimeInterval {
+enum RefreshRate: TimeInterval, Sendable {
     case once = 0
     case everyMinute = 60
     case everyHour = 3600
@@ -39,19 +30,14 @@ enum RefreshRate: TimeInterval {
     case everyYear = 31556926
 }
 
-// Structure pour représenter les endpoints avec agence et type de service
-struct GTFSEndpoint: Hashable {
+struct GTFSEndpoint: Hashable, Sendable {
     let agency: Agencies
     let serviceType: ServiceType
-    var url: String
-    var refreshFrequency: RefreshRate
-    var lastUpdate: Date?
-    
-//TODO: Ajout regles de frequences de MAJ
+    let url: String
+    let refreshFrequency: RefreshRate
 }
 
-// Set des endpoints GTFS avec leur agence et type de service
-@MainActor var gtfsEndpoints: Set<GTFSEndpoint> = [
+let gtfsEndpoints: Set<GTFSEndpoint> = [
     GTFSEndpoint(agency: .SNCF,
                  serviceType: .TER,
                  url: "https://eu.ftp.opendatasoft.com/sncf/gtfs/export-ter-gtfs-last.zip",
