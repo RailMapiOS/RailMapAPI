@@ -10,7 +10,7 @@ import Fluent
 import Vapor
 import LocomoSwift
 
-final class StopTimeRecord: Model, Content {
+final class StopTimeRecord: Model, Content, @unchecked Sendable {
     static let schema = "stop_times"
     
     @ID(key: .id)
