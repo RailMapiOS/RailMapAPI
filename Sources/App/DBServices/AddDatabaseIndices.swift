@@ -1,40 +1,26 @@
 import Fluent
+import FluentSQL
 
 struct AddDatabaseIndices: AsyncMigration {
     func prepare(on database: Database) async throws {
-        // Index on feeds.url for endpoint lookups
-        try await database.schema("feeds")
-            .unique(on: "url")
-            .update()
+        guard let sql = database as? SQLDatabase else { return }
 
-        // Index on trips.feed_id and trips.headsign for filtered queries
-        try await database.schema("trips")
-            .unique(on: "trip_id", "feed_id")
-            .update()
-
-        // Index on stops.feed_id and stops.stop_id for lookups
-        try await database.schema("stops")
-            .unique(on: "stop_id", "feed_id")
-            .update()
-
-        // Index on stop_times.trip_id for join queries
-        try await database.schema("stop_times")
-            .unique(on: "trip_id", "stop_id", "stop_sequence", "feed_id")
-            .update()
-
-        // Index on calendar_dates for service_id filtering
-        try await database.schema("calendar_dates")
-            .unique(on: "service_id", "date", "feed_id")
-            .update()
-
-        // Index on agencies.feed_id
-        try await database.schema("agencies")
-            .unique(on: "agency_id", "feed_id")
-            .update()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_feeds_url ON feeds(url)").run()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_trips_trip_feed ON trips(trip_id, feed_id)").run()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_stops_stop_feed ON stops(stop_id, feed_id)").run()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_stop_times_composite ON stop_times(trip_id, stop_id, stop_sequence, feed_id)").run()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_calendar_dates_composite ON calendar_dates(service_id, date, feed_id)").run()
+        try await sql.raw("CREATE UNIQUE INDEX IF NOT EXISTS idx_agencies_agency_feed ON agencies(agency_id, feed_id)").run()
     }
 
     func revert(on database: Database) async throws {
-        // SQLite doesn't support dropping individual constraints easily,
-        // so reverting would require recreating tables.
+        guard let sql = database as? SQLDatabase else { return }
+
+        try await sql.raw("DROP INDEX IF EXISTS idx_feeds_url").run()
+        try await sql.raw("DROP INDEX IF EXISTS idx_trips_trip_feed").run()
+        try await sql.raw("DROP INDEX IF EXISTS idx_stops_stop_feed").run()
+        try await sql.raw("DROP INDEX IF EXISTS idx_stop_times_composite").run()
+        try await sql.raw("DROP INDEX IF EXISTS idx_calendar_dates_composite").run()
+        try await sql.raw("DROP INDEX IF EXISTS idx_agencies_agency_feed").run()
     }
 }

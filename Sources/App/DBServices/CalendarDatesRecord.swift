@@ -15,7 +15,7 @@ import Vapor
 /// a service operates or not on particular dates.
 ///
 /// - Note: The exception_type value of 1 indicates service is added, while 2 indicates service removal
-final class CalendarDateRecord: Model, Content {
+final class CalendarDateRecord: Model, Content, @unchecked Sendable {
     static let schema = "calendar_dates"
     
     /// The unique identifier for this calendar date record

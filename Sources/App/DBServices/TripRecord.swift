@@ -10,7 +10,7 @@ import Fluent
 import LocomoSwift
 import Vapor
 
-final class TripRecord: Model, Content {
+final class TripRecord: Model, Content, @unchecked Sendable {
     typealias IDValue = String
     
     static let schema = "trips"

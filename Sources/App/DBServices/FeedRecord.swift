@@ -9,7 +9,7 @@
 import Fluent
 import Vapor
 
-final class FeedRecord: Model, Content {
+final class FeedRecord: Model, Content, @unchecked Sendable {
     static let schema = "feeds"  // Nom de la table dans la base de données
 
     @ID(key: .id)
