@@ -1,6 +1,7 @@
 import Vapor
 import Fluent
 import FluentSQLiteDriver
+import LocomoSwift
 
 // configures your application
 public func configure(_ app: Application) async throws {
@@ -19,5 +20,8 @@ public func configure(_ app: Application) async throws {
     // Migrer automatiquement la base de données
     try await app.autoMigrate()
     
-    try routes(app)
+    // Initialize GTFS Realtime manager
+    let realtimeManager = RealtimeManager()
+
+    try routes(app, realtimeManager: realtimeManager)
 }
