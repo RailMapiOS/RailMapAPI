@@ -9,7 +9,7 @@ import Vapor
 import Foundation
 
 // MARK: - VehiculeJourneys
-public struct VehicleJourneys: Codable {
+public struct VehicleJourneys: Codable, @unchecked Sendable {
     
     let pagination: Pagination
     let feedPublishers: [FeedPublisher]

@@ -92,15 +92,60 @@ func realtimeRoutes(_ routes: any RoutesBuilder, feedManager: FeedManager, realt
         )
     }
 
-    // GET /realtime/alerts?source=sncf-tgv
+    // GET /realtime/alerts?source=sncf-tgv&lang=fr
     realtime.get("alerts") { req async throws -> AlertsResponse in
         let source = try resolveSource(req, registry: registry)
+        let locale = resolveLocale(req)
 
         let alerts = try await realtimeManager.fetchServiceAlerts(from: source)
 
         return AlertsResponse(
             source: source.identifier,
-            alerts: alerts.map { AlertDTO(from: $0) }
+            alerts: alerts.map { AlertDTO(from: $0, locale: locale) }
+        )
+    }
+
+    // GET /realtime/shapes?source=sncf-ter
+    //
+    // Realtime-only shapes — encoded polylines for detours that aren't in
+    // the static GTFS. Most operators don't publish these; the response is
+    // typically an empty array.
+    realtime.get("shapes") { req async throws -> ShapesResponse in
+        let source = try resolveSource(req, registry: registry)
+        let feed = try await realtimeManager.fetchFeed(from: source, feedType: .tripUpdates)
+
+        return ShapesResponse(
+            source: source.identifier,
+            shapes: feed.shapes.map(RealtimeShapeDTO.init(from:))
+        )
+    }
+
+    // GET /realtime/feed?source=sncf-ter&type=trip-updates&lang=fr
+    //
+    // Returns the entire `RealtimeFeed` (header + every entity kind) in one
+    // round-trip — useful when a client wants the full picture for a feed
+    // type without making N separate calls.
+    realtime.get("feed") { req async throws -> RealtimeFeedResponse in
+        let source = try resolveSource(req, registry: registry)
+        let locale = resolveLocale(req)
+        let feedType = try resolveFeedType(req)
+
+        async let feedTask = realtimeManager.fetchFeed(from: source, feedType: feedType)
+        async let staticFeedTask: Feed? = source.hasStaticFeed
+            ? (try? await feedManager.getFeed(for: source, on: req.db))
+            : nil
+        let (feed, staticFeed) = try await (feedTask, staticFeedTask)
+        let resolver = platformResolver(feed: staticFeed)
+
+        return RealtimeFeedResponse(
+            source: source.identifier,
+            feedType: feedType.description,
+            header: RealtimeFeedHeaderDTO(from: feed.header),
+            tripUpdates: feed.tripUpdates.map { TripUpdateDTO(from: $0, platformResolver: resolver) },
+            vehiclePositions: feed.vehiclePositions.map(VehiclePositionDTO.init(from:)),
+            serviceAlerts: feed.serviceAlerts.map { AlertDTO(from: $0, locale: locale) },
+            shapes: feed.shapes.map(RealtimeShapeDTO.init(from:)),
+            deletedEntityIDs: feed.deletedEntityIDs
         )
     }
 
@@ -159,6 +204,50 @@ private func resolveSource(_ req: Request, registry: DataSourceRegistry) throws 
     }
 
     return source
+}
+
+/// Résout la locale demandée par le client pour les `TranslatedString`.
+///
+/// Ordre de priorité :
+/// 1. Query param explicite : `?lang=fr` ou `?lang=fr-FR`
+/// 2. Header HTTP `Accept-Language` (premier choix)
+/// 3. Fallback `Locale(identifier: "en")`
+///
+/// Note : l'app iOS envoie typiquement `Accept-Language: fr-FR,fr;q=0.9,en;q=0.8`
+/// — on n'extrait que le premier tag, suffisant pour la résolution
+/// `TranslatedString.text(for:)`.
+private func resolveLocale(_ req: Request) -> Locale {
+    if let lang = req.query[String.self, at: "lang"], !lang.isEmpty {
+        return Locale(identifier: lang)
+    }
+    if let header = req.headers.first(name: .acceptLanguage),
+       let firstTag = header.split(separator: ",").first {
+        let tag = firstTag.split(separator: ";").first.map { String($0).trimmingCharacters(in: .whitespaces) } ?? String(firstTag)
+        if !tag.isEmpty {
+            return Locale(identifier: tag)
+        }
+    }
+    return Locale(identifier: "en")
+}
+
+/// Résout le type de feed demandé via `?type=`.
+///
+/// Valeurs acceptées (insensible à la casse, tolérante aux variations) :
+/// `trip-updates`, `tripUpdates` → `.tripUpdates`
+/// `vehicle-positions`, `vehiclePositions` → `.vehiclePositions`
+/// `service-alerts`, `serviceAlerts`, `alerts` → `.serviceAlerts`
+private func resolveFeedType(_ req: Request) throws -> RealtimeFeedType {
+    let raw = (req.query[String.self, at: "type"] ?? "trip-updates").lowercased()
+    switch raw {
+    case "trip-updates", "tripupdates", "tripUpdates".lowercased():
+        return .tripUpdates
+    case "vehicle-positions", "vehiclepositions", "vehiclePositions".lowercased():
+        return .vehiclePositions
+    case "service-alerts", "servicealerts", "serviceAlerts".lowercased(), "alerts":
+        return .serviceAlerts
+    default:
+        throw Abort(.badRequest, reason: "Type de feed '\(raw)' inconnu. Valeurs acceptées : trip-updates, vehicle-positions, service-alerts (alias : alerts)")
+    }
 }
 
 // MARK: - Sources endpoint DTOs

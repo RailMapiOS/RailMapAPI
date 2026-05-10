@@ -8,7 +8,7 @@
 import Foundation
 import LocomoSwift
 
-public struct VehicleJourneyHelper {
+public struct VehicleJourneyHelper: Sendable {
     
     public func createVehicleStopTime(from stopTime: StopTime, trip: Trip, feed: Feed) -> VehicleStopTime {
         let agencyTimezone = getAgencyTimezone(from: feed)
