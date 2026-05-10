@@ -8,29 +8,7 @@
 import Foundation
 import LocomoSwift
 
-public struct VehicleJourneyHelper {
-//    public func createVehicleJourney(from trip: Trip, with feed: Feed, calendarDates: [CalendarDate]) -> VehicleJourney {
-//        let stopTimes = feed.stopTimes?.filter { $0.tripID == trip.tripID } ?? []
-//        let validDates = calendarDates.filter { $0.serviceID == trip.serviceID }
-//        let validityPattern = constructValidityPattern(from: validDates)
-//        
-//        let vehicleStopTimes = stopTimes.map { stopTime in
-//            createVehicleStopTime(from: stopTime, trip: trip, feed: feed)
-//        }
-//        
-//        return VehicleJourney(
-//            id: trip.tripID,
-//            name: trip.headSign ?? "",
-//            journeyPattern: JourneyPattern(id: trip.tripID, name: trip.headSign ?? ""),
-//            stopTimes: vehicleStopTimes,
-//            codes: [Code(type: .source, value: "GTFS")],
-//            validityPattern: validityPattern,
-//            calendars: validDates,
-//            trip: JourneyPattern(id: trip.tripID, name: trip.headSign ?? ""),
-//            disruptions: [],
-//            headsign: trip.headSign ?? ""
-//        )
-//    }
+public struct VehicleJourneyHelper: Sendable {
     
     public func createVehicleStopTime(from stopTime: StopTime, trip: Trip, feed: Feed) -> VehicleStopTime {
         let agencyTimezone = getAgencyTimezone(from: feed)

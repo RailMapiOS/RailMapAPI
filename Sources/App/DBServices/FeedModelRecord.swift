@@ -47,3 +47,15 @@ extension StopTimeRecord: FeedModelRecord {
         self.$feed.id = feedID
     }
 }
+
+extension CalendarDateRecord: FeedModelRecord {
+    typealias Source = CalendarDate
+    
+    convenience init(from source: LocomoSwift.CalendarDate, feedID: UUID) {
+        self.init()
+        self.$feed.id = feedID
+        self.date = source.date
+        self.exceptionType = source.exceptionType
+        self.serviceID = source.serviceID
+    }
+}

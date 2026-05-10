@@ -9,7 +9,7 @@ import Fluent
 import LocomoSwift
 import Vapor
 
-final class AgencyRecord: Model, Content {
+final class AgencyRecord: Model, Content, @unchecked Sendable {
     static let schema = "agencies"
 
     @ID(key: .id)

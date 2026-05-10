@@ -15,7 +15,7 @@ import Vapor
 /// a service operates or not on particular dates.
 ///
 /// - Note: The exception_type value of 1 indicates service is added, while 2 indicates service removal
-final class CalendarDateRecord: Model, Content {
+final class CalendarDateRecord: Model, Content, @unchecked Sendable {
     static let schema = "calendar_dates"
     
     /// The unique identifier for this calendar date record
@@ -59,5 +59,21 @@ final class CalendarDateRecord: Model, Content {
             date: self.date,
             exceptionType: self.exceptionType
         )
+    }
+}
+
+struct CreateCalendarDateRecord: AsyncMigration {
+    func prepare(on database: Database) async throws {
+        try await database.schema("calendar_dates")
+            .id()
+            .field("service_id", .string, .required)
+            .field("date", .datetime, .required)
+            .field("exception_type", .int8, .required)
+            .field("feed_id", .uuid, .required, .references("feeds", "id"))
+            .create()
+    }
+
+    func revert(on database: Database) async throws {
+        try await database.schema("calendar_dates").delete()
     }
 }

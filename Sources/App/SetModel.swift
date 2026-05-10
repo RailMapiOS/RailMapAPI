@@ -13,7 +13,7 @@ enum JourneyKey: Hashable {
     case serviceID(String)
 }
 
-public final class JourneyStation {
+public final class JourneyStation: @unchecked Sendable {
     private var journeyCache: [JourneyKey: VehicleJourneys] = [:]
     private let queue = DispatchQueue(label: "com.journeystation.threadsafe", attributes: .concurrent)
     

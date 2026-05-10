@@ -2,232 +2,375 @@ import Vapor
 import Foundation
 import LocomoSwift
 
-//func routes(_ app: Application) throws {
-//
-//    let journeyStation = JourneyStation()
-//
-//    app.get("stop", ":headsign") { req async throws -> VehicleJourneys in
-//        // Récupère le headsign de la requête
-//        guard let headsign = req.parameters.get("headsign") else {
-//            throw Abort(.badRequest, reason: "Headsign manquant")
-//        }
-//
-//        print("Recherche du headsign : \(headsign)")
-//
-//        // Vérifie si le headsign est déjà dans le cache
-//        if let cachedJourney = journeyStation.getJourney(for: JourneyKey.headsign(headsign)) {
-//            print("Headsign trouvé dans le cache")
-//            // Si le headsign est dans le cache, renvoie le VehicleJourney
-//            return VehicleJourneys(
-//                pagination: Pagination(totalResult: 1, startPage: 1, itemsPerPage: 1, itemsOnPage: 1),
-//                feedPublishers: [],
-//                disruptions: [],
-//                context: Context(currentDatetime: Date().description, timezone: TimeZone.current.identifier),
-//                vehicleJourneys: [cachedJourney],
-//                links: []
-//            )
-//        }
-//
-//        // URL du fichier GTFS
-//        let feedURLString = "https://eu.ftp.opendatasoft.com/sncf/gtfs/export-ter-gtfs-last.zip"
-//
-//        // Télécharge et charge le flux GTFS
-//        let vehicleJourneys: VehicleJourneys = try await withCheckedThrowingContinuation { continuation in
-//            do {
-//                let feed = try Feed(contentsOfURL: URL(string: feedURLString)!)
-//                print("Feed chargé avec succès")
-//
-//                // Récupérer le fuseau horaire de l'agence, ou UTC par défaut
-//                let agencyTimezone = getAgencyTimezone(from: feed)
-//
-//                // Filtrer les trips basés sur le headsign fourni
-//                let trips = feed.trips?.filter { $0.headSign == headsign } ?? []
-//
-//                if trips.isEmpty {
-//                    continuation.resume(throwing: Abort(.notFound, reason: "Aucun trajet trouvé pour le headsign \(headsign)"))
-//                    return
-//                }
-//
-//                // Obtenir les patterns de validité pour chaque trip
-//                let calendarDates = feed.calendarDates?.dates ?? []
-//
-//                // Construction de VehicleJourneys en fonction du headsign
-//                let vehicleJourneys = VehicleJourneys(
-//                    pagination: Pagination(
-//                        totalResult: trips.count,
-//                        startPage: 1,
-//                        itemsPerPage: trips.count,
-//                        itemsOnPage: trips.count
-//                    ),
-//                    feedPublishers: [
-//                        FeedPublisher(id: "1", name: "SNCF", url: "https://sncf.com", license: "OpenData License")
-//                    ],
-//                    disruptions: [],
-//                    context: Context(currentDatetime: Date().description, timezone: TimeZone.current.identifier),
-//                    vehicleJourneys: trips.map { trip in
-//                        // Pour chaque trip, récupérer les stopTimes associés
-//                        let stopTimes = feed.stopTimes?.filter { $0.tripID == trip.tripID } ?? []
-//
-//                        // Extraire la validité du service à partir de `calendar_dates`
-//                        let validDates = calendarDates.filter { $0.serviceID == trip.serviceID }
-//                        let validityPattern = constructValidityPattern(from: validDates)
-//
-//                        // Map des stopTimes dans le format attendu par le modèle VehicleJourney
-//                        let vehicleStopTimes = stopTimes.map { stopTime -> VehicleStopTime in
-//                            // Convertir les heures locales en UTC
-//                            let utcArrivalTime = stopTime.arrival?.addingTimeInterval(-TimeInterval(agencyTimezone.secondsFromGMT(for: stopTime.arrival!))) ?? Date()
-//                            let utcDepartureTime = stopTime.departure?.addingTimeInterval(-TimeInterval(agencyTimezone.secondsFromGMT(for: stopTime.departure!))) ?? Date()
-//
-//                            print("Times (Local): \(stopTime.arrival) - \(stopTime.departure)")
-//                            print("Times (UTC): \(utcArrivalTime) - \(utcDepartureTime)")
-//
-//                            return VehicleStopTime(
-//                                arrivalTime: stopTime.arrival?.ISO8601Format() ?? "",
-//                                utcArrivalTime: utcArrivalTime.ISO8601Format() ?? "",
-//                                departureTime: stopTime.departure?.ISO8601Format() ?? "",
-//                                utcDepartureTime: utcDepartureTime.ISO8601Format() ?? "",
-//                                headsign: (stopTime.stopHeadingSign ?? trip.headSign) ?? "",
-//                                stopPoint: StopPoint(
-//                                    id: stopTime.stopID,
-//                                    name: feed.stops?.first(where: { $0.stopID == stopTime.stopID })?.name ?? "Unknown",
-//                                    codes: [Code(type: .gtfsStopCode, value: stopTime.stopID)],
-//                                    label: feed.stops?.first(where: { $0.stopID == stopTime.stopID })?.name ?? "Unknown",
-//                                    coord: Coord(
-//                                        lon: feed.stops?.first(where: { $0.stopID == stopTime.stopID })?.longitude?.formatted() ?? "0.0",
-//                                        lat: feed.stops?.first(where: { $0.stopID == stopTime.stopID })?.latitude?.formatted() ?? "0.0"
-//                                    ),
-//                                    links: [],
-//                                    equipments: []
-//                                ),
-//                                pickupAllowed: stopTime.pickupType == 0,
-//                                dropOffAllowed: stopTime.dropOffType == 0,
-//                                skippedStop: false
-//                            )
-//                        }
-//
-//                        let vehicleJourney = VehicleJourney(
-//                            id: trip.tripID,
-//                            name: trip.headSign ?? "",
-//                            journeyPattern: JourneyPattern(id: trip.tripID, name: trip.headSign ?? ""),
-//                            stopTimes: vehicleStopTimes,
-//                            codes: [Code(type: .source, value: "GTFS")],
-//                            validityPattern: validityPattern,
-//                            calendars: [],
-//                            trip: JourneyPattern(id: trip.tripID, name: trip.headSign ?? ""),
-//                            disruptions: [],
-//                            headsign: trip.headSign ?? ""
-//                        )
-//
-//                        journeyStation.addJourney(vehicleJourney)
-//
-//                        return vehicleJourney
-//                    },
-//                    links: [
-//                        Link(href: "https://sncf.com", templated: false, rel: "self", type: "application/json")
-//                    ]
-//                )
-//
-//                continuation.resume(returning: vehicleJourneys)
-//
-//            } catch {
-//                print("Erreur lors du chargement du feed : \(error)")
-//                continuation.resume(throwing: error)
-//            }
-//        }
-//
-//        return vehicleJourneys
-//    }
-//
-//    // Route de test
-//    app.get("hello") { req async -> String in
-//        return "Hello, world!"
-//    }
-//
-//    func getAgencyTimezone(from feed: Feed) -> TimeZone {
-//        // Récupérer le fuseau horaire de l'agence s'il est disponible
-//        if let agency = feed.agencies?.agencies.first {
-//            let timeZone = agency.timeZone
-//            print("Agency TimeZone : \(timeZone)")
-//            return timeZone
-//        }
-//        // Retourner UTC par défaut si non trouvé
-//        print("UTC TimeZone")
-//        return TimeZone(secondsFromGMT: 0)!
-//    }
-//
-//    func constructValidityPattern(from calendarDates: [CalendarDate]) -> ValidityPattern {
-//        let formattedDates = calendarDates.map { $0.date.ISO8601Format() }.joined(separator: ", ")
-//        return ValidityPattern(beginningDate: formattedDates, days: "Custom Dates")
-//    }
-//}
+func routes(_ app: Application, feedManager: FeedManager, realtimeManager: RealtimeManager, registry: DataSourceRegistry) throws {
+    // Public health-check — kept open so liveness probes don't need a token.
+    app.get("hello") { req async -> String in
+        return "Hello, world!"
+    }
 
-func routes(_ app: Application) throws {
+    // Everything else sits behind the API token middleware.
+    let api = app.grouped(APIKeyMiddleware())
+
+    // Register GTFS Realtime routes
+    realtimeRoutes(api, feedManager: feedManager, realtimeManager: realtimeManager, registry: registry)
+
     let journeyStation = JourneyStation()
     let VJH = VehicleJourneyHelper()
-    
-    app.get("stop", ":headsign") { req async throws -> VehicleJourneys in
-        let feedManager = try FeedManager(database: req.db)
-        
-        // Récupération des paramètres `headsign`
+
+    // GET /stop/:headsign?source=sncf-ter
+    api.get("stop", ":headsign") { req async throws -> VehicleJourneys in
         guard let headsign = req.parameters.get("headsign") else {
-            throw Abort(.badRequest, reason: "Headsign manquant")
+            throw Abort(.badRequest, reason: "Missing headsign parameter")
         }
-        
-        // Récupération des paramètres `agency` et `serviceType`
-        let agencyParam = req.query[String.self, at: "agency"]
-        let serviceTypeParam = req.query[String.self, at: "serviceType"]
-        
-        // Validation des paramètres `agency` et `serviceType` des GTFSEndpoints
-        guard let agency = agencyParam.flatMap({ Agencies(rawValue: $0) }),
-              let serviceType = serviceTypeParam.flatMap({ ServiceType(rawValue: $0) }) else {
-            throw Abort(.badRequest, reason: "Agency ou ServiceType manquant ou invalide")
+
+        // Resolve DataSource from ?source= query param
+        let sourceParam = req.query[String.self, at: "source"] ?? "sncf-ter"
+        guard let source = registry.source(for: sourceParam) else {
+            let available = registry.allSources
+                .filter { $0.hasStaticFeed }
+                .map(\.identifier)
+                .sorted()
+            throw Abort(.badRequest, reason: "Unknown source '\(sourceParam)'. Available: \(available.joined(separator: ", "))")
         }
-        
-        // Récupération de l'endpoint GTFS correspondant
-        guard let endpoint = gtfsEndpoints.first(where: { $0.agency == agency && $0.serviceType == serviceType }) else {
-            throw Abort(.notFound, reason: "Endpoint GTFS non trouvé pour l'agence \(agency) et le service \(serviceType)")
+
+        guard source.hasStaticFeed else {
+            throw Abort(.badRequest, reason: "Source '\(sourceParam)' has no static feed configured")
         }
-        
-        // Vérifier si le trajet est en cache
+
+        // Check journey cache
         if let cachedJourneys = journeyStation.getJourneys(for: .headsign(headsign)) {
-            return cachedJourneys // Retourne directement les trajets depuis le cache
+            return cachedJourneys
         }
-        
-        // Si le trajet n'est pas en cache, on charge le feed
-        let feed = try await feedManager.getFeed(for: endpoint)
-        
-        // Filtrer les trips par `headsign`
+
+        // Load feed from shared FeedManager (URL-deduplicated, coalesced)
+        let feed = try await feedManager.getFeed(for: source, on: req.db)
+
+        // Filter trips by headsign
         let trips = feed.trips?.filter { $0.headSign == headsign } ?? []
         if trips.isEmpty {
-            throw Abort(.notFound, reason: "Aucun trajet trouvé pour le headsign \(headsign)")
+            throw Abort(.notFound, reason: "No trips found for headsign '\(headsign)'")
         }
 
-        // Récupérer les agences à partir du feed
         guard let agencies = feed.agencies else {
-            throw Abort(.internalServerError, reason: "Les agences sont manquantes dans le feed GTFS.")
+            throw Abort(.internalServerError, reason: "Agencies missing from GTFS feed")
         }
-        
-        // Récupérer les dates de validité associées aux trips
+
         let calendarDates = feed.calendarDates?.dates ?? []
 
-        // Créer les `VehicleJourneys` à partir des trips et des données du feed
         let vehicleJourneys = trips.map { trip in
             VJH.createVehicleJourney(from: trip, with: feed, calendarDates: calendarDates)
         }
 
-        // Créer l'objet `VehicleJourneys` avec les agences
         let fullVehicleJourneys = VJH.createVehicleJourneys(from: vehicleJourneys, agencies: agencies)
-        
-        // Mettre en cache les nouveaux trajets
+
         journeyStation.addJourneys(fullVehicleJourneys, for: .headsign(headsign))
-        
-        print("Success return fullVehicleJourneys for \(headsign)")
-        // Retourner les `VehicleJourneys`
+
+        print("[Routes] Returning \(fullVehicleJourneys.vehicleJourneys.count) journeys for '\(headsign)'")
         return fullVehicleJourneys
     }
-    
-    // Route de test basique
-    app.get("hello") { req async -> String in
-        return "Hello, world!"
+
+    // GET /train/:trainNumber?source=sncf-ter  (source optional — searches all if omitted)
+    //
+    // Resolves the service type of a train from its number (trip_short_name in GTFS).
+    // Returns route type, agency info, headsign, and the source it was found in.
+    api.get("train", ":trainNumber") { req async throws -> TrainInfoResponse in
+        guard let trainNumber = req.parameters.get("trainNumber") else {
+            throw Abort(.badRequest, reason: "Missing trainNumber parameter")
+        }
+
+        let sourceParam: String? = req.query[String.self, at: "source"]
+
+        // Determine which sources to search
+        let sourcesToSearch: [DataSource]
+        if let sourceParam {
+            guard let source = registry.source(for: sourceParam) else {
+                let available = registry.allSources
+                    .filter { $0.hasStaticFeed }
+                    .map(\.identifier)
+                    .sorted()
+                throw Abort(.badRequest, reason: "Unknown source '\(sourceParam)'. Available: \(available.joined(separator: ", "))")
+            }
+            sourcesToSearch = [source]
+        } else {
+            // Search all sources that have a static feed
+            sourcesToSearch = registry.allSources.filter { $0.hasStaticFeed }
+        }
+
+        // Search each source for matching trips
+        var results: [TrainInfo] = []
+
+        for source in sourcesToSearch {
+            let feed: Feed
+            do {
+                feed = try await feedManager.getFeed(for: source, on: req.db)
+            } catch {
+                // Skip sources that fail to load (e.g. network issues)
+                continue
+            }
+
+            // Find trips matching the train number (trip_short_name)
+            let matchingTrips = feed.trips?.filter { $0.shortName == trainNumber } ?? []
+            if matchingTrips.isEmpty { continue }
+
+            // Build route lookup for this feed
+            let routeLookup: [String: LocomoSwift.Route] = {
+                guard let routes = feed.routes else { return [:] }
+                return Dictionary(routes.map { ($0.routeID, $0) }, uniquingKeysWith: { first, _ in first })
+            }()
+
+            // Build agency lookup
+            let agencyLookup: [String: LocomoSwift.Agency] = {
+                guard let agencies = feed.agencies else { return [:] }
+                return Dictionary(
+                    agencies.compactMap { a in a.agencyID.map { ($0, a) } },
+                    uniquingKeysWith: { first, _ in first }
+                )
+            }()
+
+            // Deduplicate by routeID (many trips share the same route)
+            var seenRouteIDs: Set<String> = []
+
+            for trip in matchingTrips {
+                guard seenRouteIDs.insert(trip.routeID).inserted else { continue }
+
+                let route = routeLookup[trip.routeID]
+                let agency = route?.agencyID.flatMap { agencyLookup[$0] }
+                    ?? feed.agencies?.first
+
+                results.append(TrainInfo(
+                    trainNumber: trainNumber,
+                    source: source.identifier,
+                    sourceDisplayName: source.displayName,
+                    tripID: trip.tripID,
+                    routeID: trip.routeID,
+                    routeShortName: route?.shortName,
+                    routeLongName: route?.name,
+                    routeType: route?.type.rawValue ?? 2,
+                    routeTypeDescription: route?.type.description ?? "Rail",
+                    agencyID: agency?.agencyID,
+                    agencyName: agency?.name ?? "Unknown",
+                    headsign: trip.headSign,
+                    direction: trip.direction
+                ))
+            }
+        }
+
+        if results.isEmpty {
+            throw Abort(.notFound, reason: "No train found with number '\(trainNumber)'")
+        }
+
+        return TrainInfoResponse(
+            trainNumber: trainNumber,
+            results: results
+        )
     }
+
+    // GET /train/:trainNumber/shape?source=sncf-ter
+    //
+    // Returns the geographic shape (polyline) for a train trip.
+    // Priority: GTFS shapes.txt → signal.eu.org OSRM → Overpass API → stop-to-stop lines.
+    api.get("train", ":trainNumber", "shape") { req async throws -> TrainShapeResponse in
+        guard let trainNumber = req.parameters.get("trainNumber") else {
+            throw Abort(.badRequest, reason: "Missing trainNumber parameter")
+        }
+
+        let sourceParam = req.query[String.self, at: "source"] ?? "sncf-ter"
+        guard let source = registry.source(for: sourceParam) else {
+            let available = registry.allSources
+                .filter { $0.hasStaticFeed }
+                .map(\.identifier)
+                .sorted()
+            throw Abort(.badRequest, reason: "Unknown source '\(sourceParam)'. Available: \(available.joined(separator: ", "))")
+        }
+
+        let feed = try await feedManager.getFeed(for: source, on: req.db)
+
+        // Find the trip by train number (trip_short_name)
+        guard let trip = feed.trips?.first(where: { $0.shortName == trainNumber }) else {
+            throw Abort(.notFound, reason: "No trip found with train number '\(trainNumber)' in source '\(sourceParam)'")
+        }
+
+        // 1. Try GTFS shapes.txt
+        if let shapeID = trip.shapeID, let shapes = feed.shapes {
+            let shapePoints = shapes.pointsForShape(shapeID)
+            if !shapePoints.isEmpty {
+                let coordinates = shapePoints.compactMap { point -> [Double]? in
+                    guard let lat = point.latitude, let lon = point.longitude else { return nil }
+                    return [lon, lat]
+                }
+                if !coordinates.isEmpty {
+                    return TrainShapeResponse(
+                        trainNumber: trainNumber,
+                        source: sourceParam,
+                        shapeSource: "gtfs",
+                        geojson: GeoJSONGeometry(type: "LineString", coordinates: coordinates)
+                    )
+                }
+            }
+        }
+
+        // Build ordered stop coordinates for this trip
+        let tripStopTimes = (feed.stopTimes?.filter { $0.tripID == trip.tripID } ?? [])
+            .sorted { $0.stopSequenceNumber < $1.stopSequenceNumber }
+
+        let stopLookup: [String: LocomoSwift.Stop] = {
+            guard let stops = feed.stops else { return [:] }
+            return Dictionary(
+                stops.compactMap { s -> (String, LocomoSwift.Stop)? in
+                    return (s.stopID, s)
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
+        }()
+
+        let stopCoordinates: [ShapeFallbackProvider.Coordinate] = tripStopTimes.compactMap { st in
+            guard let stop = stopLookup[st.stopID],
+                  let lat = stop.latitude,
+                  let lon = stop.longitude else { return nil }
+            return ShapeFallbackProvider.Coordinate(latitude: lat, longitude: lon)
+        }
+
+        guard stopCoordinates.count >= 2 else {
+            throw Abort(.notFound, reason: "Not enough stop coordinates to build a shape for train '\(trainNumber)'")
+        }
+
+        // 2. Try signal.eu.org OSRM (European rail router)
+        if let osrmShape = await ShapeFallbackProvider.fromSignalOSRM(stops: stopCoordinates, client: req.client) {
+            return TrainShapeResponse(
+                trainNumber: trainNumber,
+                source: sourceParam,
+                shapeSource: "signal-osrm",
+                geojson: osrmShape
+            )
+        }
+
+        // 3. Try Overpass API (OpenStreetMap railway data)
+        if let overpassShape = await ShapeFallbackProvider.fromOverpass(stops: stopCoordinates, client: req.client) {
+            return TrainShapeResponse(
+                trainNumber: trainNumber,
+                source: sourceParam,
+                shapeSource: "overpass",
+                geojson: overpassShape
+            )
+        }
+
+        // 4. Fallback: straight lines between stops
+        return TrainShapeResponse(
+            trainNumber: trainNumber,
+            source: sourceParam,
+            shapeSource: "stops-only",
+            geojson: ShapeFallbackProvider.fromStops(stopCoordinates)
+        )
+    }
+
+    // GET /sources — List all available data sources
+    api.get("sources") { req async throws -> AllSourcesResponse in
+        let sources = registry.allSources.map { source in
+            DataSourceInfo(
+                identifier: source.identifier,
+                displayName: source.displayName,
+                hasStaticFeed: source.hasStaticFeed,
+                staticRefreshInterval: source.staticRefreshInterval,
+                availableRealtimeFeeds: source.availableRealtimeFeedTypes.map(\.description).sorted(),
+                realtimeCacheTTL: source.realtimeCacheTTL
+            )
+        }.sorted { $0.identifier < $1.identifier }
+
+        return AllSourcesResponse(sources: sources)
+    }
+
+}
+
+// MARK: - DTOs
+
+struct AllSourcesResponse: Content {
+    let sources: [DataSourceInfo]
+}
+
+struct DataSourceInfo: Content {
+    let identifier: String
+    let displayName: String
+    let hasStaticFeed: Bool
+    let staticRefreshInterval: TimeInterval
+    let availableRealtimeFeeds: [String]
+    let realtimeCacheTTL: TimeInterval
+}
+
+// MARK: - Train Info DTOs
+
+struct TrainInfoResponse: Content {
+    let trainNumber: String
+    let results: [TrainInfo]
+}
+
+struct TrainInfo: Content {
+    /// The train number queried (trip_short_name)
+    let trainNumber: String
+    /// DataSource identifier where this train was found
+    let source: String
+    /// Human-readable source name
+    let sourceDisplayName: String
+    /// GTFS trip ID (one representative trip)
+    let tripID: String
+    /// GTFS route ID
+    let routeID: String
+    /// Route short name (e.g. "TER", "TGV", "IC")
+    let routeShortName: String?
+    /// Route long name
+    let routeLongName: String?
+    /// GTFS route_type as raw integer
+    let routeType: UInt
+    /// Human-readable route type description
+    let routeTypeDescription: String
+    /// Agency ID
+    let agencyID: String?
+    /// Agency name (e.g. "SNCF", "SBB CFF FFS")
+    let agencyName: String
+    /// Trip headsign (destination)
+    let headsign: String?
+    /// Direction ID
+    let direction: String?
+
+    enum CodingKeys: String, CodingKey {
+        case trainNumber = "train_number"
+        case source
+        case sourceDisplayName = "source_display_name"
+        case tripID = "trip_id"
+        case routeID = "route_id"
+        case routeShortName = "route_short_name"
+        case routeLongName = "route_long_name"
+        case routeType = "route_type"
+        case routeTypeDescription = "route_type_description"
+        case agencyID = "agency_id"
+        case agencyName = "agency_name"
+        case headsign
+        case direction
+    }
+}
+
+// MARK: - Train Shape DTOs
+
+struct TrainShapeResponse: Content {
+    /// The train number queried
+    let trainNumber: String
+    /// DataSource identifier
+    let source: String
+    /// Where the shape data came from: "gtfs", "signal-osrm", "overpass", or "stops-only"
+    let shapeSource: String
+    /// GeoJSON geometry for the train route
+    let geojson: GeoJSONGeometry
+
+    enum CodingKeys: String, CodingKey {
+        case trainNumber = "train_number"
+        case source
+        case shapeSource = "shape_source"
+        case geojson
+    }
+}
+
+struct GeoJSONGeometry: Content {
+    /// GeoJSON geometry type ("LineString")
+    let type: String
+    /// Array of [longitude, latitude] coordinate pairs
+    let coordinates: [[Double]]
 }
