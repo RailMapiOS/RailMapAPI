@@ -1,5 +1,5 @@
 {
-  "originHash" : "fd3e893e4946595cace1ceafe216fe5cbe3956b5d5ed4a5dd0629fcb856d58c9",
+  "originHash" : "2aa946490dbb3537ff6fbf031974d1fe0ad1d91e58e5cd9f15e39dc89f2cba15",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -222,8 +222,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-protobuf.git",
       "state" : {
-        "revision" : "ebc7251dd5b37f627c93698e4374084d98409633",
-        "version" : "1.28.2"
+        "revision" : "102a647b573f60f73afdce5613a51d71349fe507",
+        "version" : "1.30.0"
       }
     },
     {
@@ -240,8 +240,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/vapor.git",
       "state" : {
-        "revision" : "a4d7d4d32ef4a21dd10bc6375f4d20da3c5594e4",
-        "version" : "4.105.2"
+        "revision" : "fb619ab6485a88787ef9c78ba70e7415f8ebf981",
+        "version" : "4.106.4"
       }
     },
     {

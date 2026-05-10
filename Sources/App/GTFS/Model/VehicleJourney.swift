@@ -212,7 +212,7 @@ class JSONNullVJ: Codable, Hashable {
     }
 }
 
-class JSONCodingKeyVJ: CodingKey {
+final class JSONCodingKeyVJ: CodingKey {
     let key: String
 
     required init?(intValue: Int) {
@@ -427,7 +427,7 @@ class JSONAnyVJ: Codable {
     }
 }
 
-class JSONCodingKey: CodingKey {
+final class JSONCodingKey: CodingKey {
     let key: String
 
     required init?(intValue: Int) {

@@ -33,6 +33,15 @@ struct StopTimeUpdateDTO: Content {
     let departureDelay: Int32?
     let departureTime: Date?
     let scheduleRelationship: Int
+
+    /// Announced platform / track number, when published.
+    ///
+    /// SNCF (and most operators) don't put the platform in a dedicated
+    /// GTFS-RT field — instead they re-route `stopID` from the parent
+    /// `stop_area` to a child stop carrying `platform_code`. This field
+    /// holds the resolved value (looked up against the static feed at
+    /// response time). `nil` when the platform is not yet announced.
+    let platform: String?
 }
 
 // MARK: - Alert DTOs
@@ -91,18 +100,32 @@ struct VehiclePositionDTO: Content {
 
 extension TripUpdateDTO {
     init(from update: RealtimeTripUpdate) {
+        self.init(from: update, platformResolver: { _ in nil })
+    }
+
+    /// Building variant that takes a `platformResolver` closure looking up
+    /// the static `platform_code` for any GTFS stop ID. The closure is
+    /// passed to each child `StopTimeUpdateDTO` so the response carries the
+    /// resolved platform (when published by the operator).
+    init(from update: RealtimeTripUpdate, platformResolver: (String) -> String?) {
         self.tripID = update.tripID
         self.routeID = update.routeID
         self.scheduleRelationship = update.scheduleRelationship.rawValue
         self.delay = update.delay
         self.timestamp = update.timestamp
         self.vehicleID = update.vehicleID
-        self.stopTimeUpdates = update.stopTimeUpdates.map { StopTimeUpdateDTO(from: $0) }
+        self.stopTimeUpdates = update.stopTimeUpdates.map {
+            StopTimeUpdateDTO(from: $0, platform: platformResolver($0.stopID))
+        }
     }
 }
 
 extension StopTimeUpdateDTO {
     init(from stu: RealtimeStopTimeUpdate) {
+        self.init(from: stu, platform: nil)
+    }
+
+    init(from stu: RealtimeStopTimeUpdate, platform: String?) {
         self.stopID = stu.stopID
         self.stopSequence = stu.stopSequence
         self.arrivalDelay = stu.arrivalDelay
@@ -110,6 +133,7 @@ extension StopTimeUpdateDTO {
         self.departureDelay = stu.departureDelay
         self.departureTime = stu.departureTime
         self.scheduleRelationship = stu.scheduleRelationship.rawValue
+        self.platform = platform
     }
 }
 

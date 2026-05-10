@@ -16,12 +16,17 @@ version: '3.7'
 
 x-shared_environment: &shared_environment
   LOG_LEVEL: ${LOG_LEVEL:-debug}
-  
+  # `:?` makes Compose fail fast if the var is missing — better than silently
+  # starting an unauthenticated server.
+  API_AUTH_TOKENS: ${API_AUTH_TOKENS:?API_AUTH_TOKENS must be set in .env}
+
 services:
   app:
     image: rail-map-a-p-i:latest
     build:
       context: .
+    env_file:
+      - .env
     environment:
       <<: *shared_environment
     ports:
