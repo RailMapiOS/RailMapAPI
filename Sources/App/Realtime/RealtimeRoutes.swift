@@ -69,9 +69,10 @@ func realtimeRoutes(_ routes: any RoutesBuilder, feedManager: FeedManager, realt
                 uniqueKeysWithValues: staticTrips.map { ($0.tripID, $0) }
             )
             if let fallback = updates.first(where: { rt in
-                tripsByID[rt.tripID]?.shortName == trainNumber
+                guard let id = rt.tripID else { return false }
+                return tripsByID[id]?.shortName == trainNumber
             }) {
-                req.logger.info("[trip-updates] Fallback match: \(tripID) → \(fallback.tripID) via trip_short_name=\(trainNumber)")
+                req.logger.info("[trip-updates] Fallback match: \(tripID) → \(fallback.tripID ?? "?") via trip_short_name=\(trainNumber)")
                 return TripUpdateDTO(from: fallback, platformResolver: resolver)
             }
         }

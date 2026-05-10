@@ -12,8 +12,7 @@ let package = Package(
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMinor(from: "1.30.0")),
-        .package(path: "../LocomoSwift"),
-//        .package(url: "https://github.com/RailMapiOS/LocomoSwift.git", .upToNextMinor(from: "0.0.7")),
+        .package(url: "https://github.com/RailMapiOS/LocomoSwift.git", from: "1.3.0"),
         .package(url: "https://github.com/weichsel/ZIPFoundation.git", .upToNextMinor(from: "0.9.19")),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", .upToNextMinor(from: "4.8.0")),
         .package(url: "https://github.com/vapor/fluent.git", .upToNextMinor(from: "4.12.0"))
