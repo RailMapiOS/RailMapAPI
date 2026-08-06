@@ -185,8 +185,19 @@ func routes(_ app: Application, feedManager: FeedManager, realtimeManager: Realt
 
         let feed = try await feedManager.getFeed(for: source, on: req.db)
 
-        // Find the trip by train number (trip_short_name)
-        guard let trip = feed.trips?.first(where: { $0.shortName == trainNumber }) else {
+        // Resolve the trip. Prefer the exact `?tripID=` the client saved: SNCF
+        // publishes many same-number variants (different days / stop sets /
+        // endpoints), so matching by number alone can return the wrong service
+        // (e.g. one that runs past the user's destination, or skips a stop the
+        // user's does serve). Fall back to matching by train number — SNCF
+        // encodes it in `trip_headsign` (NOT `trip_short_name`), which is how
+        // the working `/stop/:headsign` search matches; some feeds use
+        // `trip_short_name`, so match either for cross-operator safety.
+        let tripIDParam = req.query[String.self, at: "tripID"]
+        let matchedTrip = tripIDParam
+            .flatMap { id in feed.trips?.first { $0.tripID == id } }
+            ?? feed.trips?.first { $0.shortName == trainNumber || $0.headSign == trainNumber }
+        guard let trip = matchedTrip else {
             throw Abort(.notFound, reason: "No trip found with train number '\(trainNumber)' in source '\(sourceParam)'")
         }
 

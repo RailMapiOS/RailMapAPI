@@ -34,34 +34,65 @@ struct ShapeFallbackProvider {
     ) async -> GeoJSONGeometry? {
         guard stops.count >= 2 else { return nil }
 
-        // OSRM expects coordinates as lon,lat pairs separated by semicolons
-        // Limit waypoints to avoid URL length issues (use first, last, + evenly spaced intermediate)
+        // Limit waypoints to avoid URL length issues (first, last, + evenly spaced).
         let waypoints = selectWaypoints(from: stops, maxCount: 25)
+
+        // 1. Fast path: route the whole set in a single request. Works for most
+        //    trips and keeps us to one round-trip.
+        if let full = await requestOSRMLine(waypoints, client: client) {
+            return GeoJSONGeometry(type: "LineString", coordinates: full)
+        }
+
+        // 2. Robust path (leg-by-leg with skip): the full request returned
+        //    `NoRoute` because at least one stop coordinate doesn't snap to a
+        //    routable rail edge on signal.eu.org (e.g. Bordeaux Saint-Jean's
+        //    GTFS coordinate lands on an unroutable stub — confirmed even with
+        //    snapping=any / radiuses). Rather than collapse the entire shape to
+        //    straight lines, walk the waypoints keeping the last good anchor:
+        //    when a leg fails, SKIP that waypoint and route across it from the
+        //    anchor, so OSRM follows the real through-tracks instead.
+        var coordinates: [[Double]] = []
+        var anchor = waypoints[0]
+        for next in waypoints.dropFirst() {
+            guard let leg = await requestOSRMLine([anchor, next], client: client) else {
+                continue // unroutable waypoint → skip it, keep the same anchor
+            }
+            if coordinates.isEmpty {
+                coordinates = leg
+            } else {
+                // The legs share a point (anchor); drop the duplicate on join.
+                coordinates.append(contentsOf: leg.dropFirst())
+            }
+            anchor = next
+        }
+
+        return coordinates.count >= 2
+            ? GeoJSONGeometry(type: "LineString", coordinates: coordinates)
+            : nil
+    }
+
+    /// Performs a single OSRM `route` request and returns the geometry's
+    /// coordinate list (`[[lon, lat]]`), or `nil` on any failure / non-`Ok` code.
+    private static func requestOSRMLine(
+        _ waypoints: [Coordinate],
+        client: Client
+    ) async -> [[Double]]? {
+        guard waypoints.count >= 2 else { return nil }
+
+        // OSRM expects coordinates as lon,lat pairs separated by semicolons.
         let coordinateString = waypoints
             .map { "\($0.longitude),\($0.latitude)" }
             .joined(separator: ";")
-
         let url = "https://signal.eu.org/osm/eu/route/v1/train/\(coordinateString)?overview=full&geometries=geojson"
 
         do {
             let response = try await client.get(URI(string: url))
-
-            guard response.status == .ok,
-                  let body = response.body else {
-                return nil
-            }
-
+            guard response.status == .ok, let body = response.body else { return nil }
             let osrmResponse = try JSONDecoder().decode(OSRMResponse.self, from: body)
-
-            guard osrmResponse.code == "Ok",
-                  let route = osrmResponse.routes.first else {
+            guard osrmResponse.code == "Ok", let route = osrmResponse.routes.first else {
                 return nil
             }
-
-            return GeoJSONGeometry(
-                type: route.geometry.type,
-                coordinates: route.geometry.coordinates
-            )
+            return route.geometry.coordinates
         } catch {
             print("[ShapeFallback] signal.eu.org OSRM error: \(error)")
             return nil
