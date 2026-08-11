@@ -303,21 +303,27 @@ Règle 1 — *Block unauthenticated* : tout ce qui n'a pas de header
 Expression :
   (http.host eq "api.jeremiepatot.fr"
    and not starts_with(http.request.uri.path, "/hello")
-   and len(http.request.headers["authorization"]) == 0)
+   and not any(http.request.headers.names[*] == "authorization"))
 Action : Block
 ```
+
+`http.request.headers.names` normalise les noms en minuscules — c'est la forme
+documentée pour tester l'absence d'un en-tête.
 
 Règle 2 — *Méthodes* : l'API est en lecture seule, tout sauf GET/HEAD est bloqué.
 
 ```
-Expression : (http.request.method ne "GET" and http.request.method ne "HEAD")
+Expression : (http.host eq "api.jeremiepatot.fr"
+              and http.request.method ne "GET"
+              and http.request.method ne "HEAD")
 Action : Block
 ```
 
 Règle 3 (optionnelle) — restreindre au périmètre de la beta :
 
 ```
-Expression : (ip.geoip.country ne "FR" and ip.geoip.country ne "CH")
+Expression : (http.host eq "api.jeremiepatot.fr"
+              and ip.geoip.country ne "FR" and ip.geoip.country ne "CH")
 Action : Block
 ```
 
@@ -325,12 +331,17 @@ Action : Block
 
 ```
 Expression : (http.host eq "api.jeremiepatot.fr")
-Compteur   : 100 requêtes / 1 minute, par IP
+Compteur   : 300 requêtes / 1 minute, par IP
 Action     : Block pendant 60 s
 ```
 
-À calibrer : l'app poll le temps réel, un testeur actif peut monter vite.
-Regarder *Security → Events* après quelques jours avant de resserrer.
+Calibrage, mesuré sur le code client : `AppFeature.pollInterval` vaut **30 s** et
+chaque tick déclenche 3 appels par trajet suivi (trip updates, position,
+alertes). Un testeur sur un trajet ≈ 6 req/min, avec plusieurs trajets ouverts
+20 à 40 req/min. La marge jusqu'à 300 est volontaire : **les opérateurs mobiles
+français font du CGNAT**, donc plusieurs testeurs peuvent partager une même IP
+publique. Un scraping abusif, lui, se compte en milliers de req/min et reste
+bloqué. Regarder *Security → Events* après quelques jours avant de resserrer.
 
 **Caching** — l'API est authentifiée, Cloudflare ne cache rien par défaut avec
 un header `Authorization`. Ne rien changer.
