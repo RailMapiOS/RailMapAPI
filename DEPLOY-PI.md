@@ -15,7 +15,7 @@ Cloudflare edge  ── TLS, WAF, rate limit, DDoS
 cloudflared (systemd, sur le Pi)
    │  http://127.0.0.1:8090
    ▼
-Docker : rail-map-a-p-i  (8090 hôte → 8080 conteneur)
+Docker : rail-map-a-p-i  (network_mode: host, écoute sur 127.0.0.1:8090)
 ```
 
 ---
@@ -40,6 +40,17 @@ Conséquences :
 - **Ce Pi rend le DNS de toute la maison.** Si l'ingestion GTFS sature le CPU ou
   la RAM, tu perds le DNS domestique et la domotique Zigbee en même temps.
   Prévoir de plafonner le conteneur (voir §1) et surveiller.
+- **Le réseau bridge Docker est défaillant pour les réseaux nouvellement créés.**
+  Constaté le 11 août 2026 : le conteneur obtient bien son IP, la paire veth est
+  `UP,LOWER_UP` des deux côtés et rattachée au bridge, les règles nftables sont
+  complètes et identiques à celles d'un bridge fonctionnel — mais `eth0` du
+  conteneur reste à **0 octet reçu** et l'hôte ne résout jamais l'ARP de l'IP du
+  conteneur. Les bridges préexistants (`arr_default`, `pihole_default`)
+  fonctionnent, un bridge neuf non ; recréer le réseau ne corrige rien, et le STP
+  est désactivé. D'où le `network_mode: host` du `docker-compose.yml`.
+  **C'est un problème latent de la machine**, indépendant de RailMapAPI : tout
+  nouveau projet Docker sur ce Pi rencontrera la même chose. À investiguer à part
+  (piste : version du noyau vs Docker 29 en nf_tables).
 
 ---
 
@@ -72,14 +83,20 @@ Le Pi est bien mieux équipé que ce que laissait croire le premier relevé :
 - **`log2ram` couvre déjà `/var/log`**, l'autre grand consommateur d'écritures.
 
 Le seul point à surveiller : **le NVMe est rempli à 99 %**, il ne reste que 39 Go.
-C'est suffisant pour le build (pic ~9 Go) mais la marge est mince. Contrôler
-avant de lancer :
+Suffisant pour le build (pic ~9 Go), mais à vérifier avant chaque reconstruction :
 
 ```bash
+df -h /mnt/ssd
 docker system df
-df -h /mnt/ssd               # viser au moins 15 Go libres avant le build
-docker system prune -af      # si besoin de récupérer de la place
 ```
+
+> ⚠️ **Ne pas lancer `docker system prune -af` sur ce Pi.** Il héberge 9 conteneurs,
+> dont Pi-hole (le DNS de toute la maison) et Zigbee2MQTT. `prune -a` supprime les
+> conteneurs arrêtés et toute image non rattachée à un conteneur : un service
+> temporairement à l'arrêt au mauvais moment perd son image, et il faut la
+> retélécharger pour le relancer. Le cache de build est déjà à 0 de toute façon,
+> il n'y a rien à y gagner. Pour faire de la place, viser plutôt les données de
+> `/mnt/ssd` hors Docker.
 
 ### Récupérer le code
 
