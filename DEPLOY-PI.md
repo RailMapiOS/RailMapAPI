@@ -364,6 +364,45 @@ Dans Xcode, cible `RailMapiOS` :
 
 ---
 
+## 5 bis. Rafraîchissement quotidien des GTFS statiques
+
+Il n'y a **aucune planification dans l'API** : `FeedManager.getFeed` retélécharge
+paresseusement, à la première requête qui suit l'expiration (24 h pour les
+sources SNCF). Sans préchauffage, c'est donc un testeur au hasard qui déclenche
+une ingestion de ~15 min — et comme Cloudflare coupe à 100 s, il reçoit une
+**erreur 524**, pas une attente.
+
+Piège du cron naïf : `lastUpdate` est horodaté à la **fin** du téléchargement. Une
+tâche quotidienne à 04:00 dont l'ingestion finit à 04:15 trouvera le lendemain un
+feed vieux de 23 h 45 seulement, jugé encore frais — le rafraîchissement n'aurait
+donc lieu qu'un jour sur deux. D'où le redémarrage du conteneur avant le
+préchauffage : le cache étant en mémoire, le vider force le téléchargement.
+
+Fichiers : `Scripts/warm-feeds.sh`, `deploy/railmap-warmup.service`,
+`deploy/railmap-warmup.timer`.
+
+Installation sur le Pi :
+
+```bash
+cd ~/RailMapAPI && git pull && chmod +x Scripts/warm-feeds.sh
+sudo cp deploy/railmap-warmup.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now railmap-warmup.timer
+systemctl list-timers railmap-warmup --no-pager
+```
+
+Test immédiat (long, ~15 min par source) :
+
+```bash
+sudo systemctl start railmap-warmup.service
+journalctl -u railmap-warmup -f
+```
+
+Le service vise `127.0.0.1:8090` en direct, **jamais** l'URL publique : le
+plafond de 100 s de Cloudflare rendrait le préchauffage impossible.
+
+---
+
 ## 6. Points de vigilance pour la beta
 
 - **Le token est extractible de l'IPA.** `APIKeys.railmapToken` est compilé en
