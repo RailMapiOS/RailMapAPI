@@ -1,0 +1,17 @@
+[Unit]
+Description=RailMapAPI — forced GTFS static refresh and cache warm-up
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=jezza
+Environment=COMPOSE_DIR=/home/jezza/RailMapAPI
+Environment=API=http://127.0.0.1:8090
+# Quotes are required: systemd splits `Environment=` on whitespace and would
+# otherwise read `sncf-tgv` and `sncf-intercites` as bogus assignments, silently
+# warming only the first source.
+Environment="SOURCES=sncf-ter sncf-tgv sncf-intercites"
+ExecStart=/home/jezza/RailMapAPI/Scripts/warm-feeds.sh
+# A cold ingestion runs ~15 min per feed; three feeds plus margin.
+TimeoutStartSec=5400

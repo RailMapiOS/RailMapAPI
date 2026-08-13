@@ -1,0 +1,16 @@
+[Unit]
+Description=Daily forced GTFS static refresh for RailMapAPI
+
+[Timer]
+# 04:00 local time: SNCF publishes overnight, and the ~15 min ingestion is over
+# well before any tester wakes up.
+OnCalendar=*-*-* 04:00:00
+# Also warm up after a reboot — the feed cache lives in memory and is lost.
+OnBootSec=3min
+# If the Pi was off at 04:00, run as soon as it is back.
+Persistent=true
+# Avoid hammering the SNCF endpoint at the exact same second every day.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

@@ -49,12 +49,22 @@ public actor FeedManager {
             return cached.feed
         }
 
-        // 2. Check database
-        if let storedFeed = try await loadFeedFromDB(url: cacheKey, on: db) {
-            print("[FeedManager] Loaded '\(source.displayName)' from database")
-            urlCache[cacheKey] = (storedFeed, Date())
-            return storedFeed
-        }
+        // 2. SQLite reload is intentionally BYPASSED (stopgap fix A).
+        //
+        // The DB layer does not persist `routes`, `shapes`, nor a trip's
+        // `shortName` / `shapeID` / `routeID` (see TripRecord + saveFeedToDB).
+        // A feed rebuilt from SQLite therefore loses its shapes AND becomes
+        // unsearchable by train number — which is exactly why
+        // `/train/:num/shape` returned 404 and the app fell back to straight
+        // stop-to-stop lines once the in-memory cache had expired.
+        //
+        // Until the proper fix lands (persist routes/shapes + those trip fields
+        // — see ADR-009 / "fix B"), always serve the COMPLETE freshly downloaded
+        // feed via the in-memory cache or a new download below.
+        //
+        // Trade-off: a cold process re-downloads on the first request per source
+        // (the download is still coalesced). `saveFeedToDB` keeps running so the
+        // data is ready for fix B; its output is simply not read back yet.
 
         // 3. Download (coalesced)
         let feed = try await coalesceDownload(url: feedURL, cacheKey: cacheKey, on: db)
@@ -98,7 +108,13 @@ public actor FeedManager {
     // MARK: - Database: Load
 
     /// Loads a Feed from the database by URL. Returns nil if not found.
-    private func loadFeedFromDB(url: String, on db: Database) async throws -> Feed? {
+    ///
+    /// Currently unused: `getFeed` bypasses the SQLite reload because the DB
+    /// layer loses routes/shapes and trip identifiers (see fix A note in
+    /// `getFeed`). Retained for the proper fix (B), which will make the DB
+    /// round-trip lossless and re-enable this path. `internal` (not `private`)
+    /// on purpose so it doesn't trip the "never used" warning meanwhile.
+    func loadFeedFromDB(url: String, on db: Database) async throws -> Feed? {
         guard let record = try await FeedRecord.query(on: db)
             .filter(\.$url == url)
             .first()
