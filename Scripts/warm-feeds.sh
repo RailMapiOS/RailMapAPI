@@ -57,12 +57,16 @@ for src in $SOURCES; do
         -w '%{http_code} %{time_total}' \
         -H "Authorization: Bearer $TOKEN" \
         "$API/stop/warmup?source=$src" || echo "000 0")
-    if [ "$code" = "200" ]; then
-        log "  $src OK in ${time}s"
-    else
-        log "  $src FAILED (code=$code after ${time}s)"
-        rc=1
-    fi
+    # 404 is a SUCCESS here. `/stop/:headsign` runs FeedManager.getFeed — the
+    # ingestion we are after — and only then looks for journeys matching the
+    # headsign. "warmup" matches nothing, so a fully successful ingestion still
+    # answers 404. Real failures are timeouts (000), auth (401/403) and 5xx.
+    case "$code" in
+        200|404) log "  $src OK in ${time}s (code=$code)" ;;
+        000)     log "  $src FAILED: timeout after ${time}s"; rc=1 ;;
+        401|403) log "  $src FAILED: auth rejected (code=$code) — check API_AUTH_TOKENS"; rc=1 ;;
+        *)       log "  $src FAILED (code=$code after ${time}s)"; rc=1 ;;
+    esac
 done
 
 log "done (exit $rc)"
