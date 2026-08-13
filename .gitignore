@@ -6,6 +6,9 @@ DerivedData/
 .DS_Store
 db.sqlite
 .swiftpm
+# Code-coverage artifacts emitted by `swift test`/`swift build` runs.
+*.profraw
+*.profdata
 .env
 .env.*
 ! .env.example
