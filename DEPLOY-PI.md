@@ -369,8 +369,14 @@ Dans Xcode, cible `RailMapiOS` :
 Il n'y a **aucune planification dans l'API** : `FeedManager.getFeed` retélécharge
 paresseusement, à la première requête qui suit l'expiration (24 h pour les
 sources SNCF). Sans préchauffage, c'est donc un testeur au hasard qui déclenche
-une ingestion de ~15 min — et comme Cloudflare coupe à 100 s, il reçoit une
+l'ingestion complète — et comme Cloudflare coupe à 100 s, il reçoit une
 **erreur 524**, pas une attente.
+
+**Coût réel, mesuré le 13/08/2026 sur le Pi 5 :** `sncf-ter` prend **196 s**,
+puis `sncf-tgv` et `sncf-intercites` répondent en **2 ms**. Les trois `DataSource`
+SNCF de LocomoSwift pointent en effet sur le même ZIP
+(`Export_OpenData_SNCF_GTFS_NewTripId.zip`) et `FeedManager` déduplique son cache
+par URL : **un seul téléchargement couvre les trois**. Budget quotidien ≈ 3 min 20.
 
 Piège du cron naïf : `lastUpdate` est horodaté à la **fin** du téléchargement. Une
 tâche quotidienne à 04:00 dont l'ingestion finit à 04:15 trouvera le lendemain un
@@ -391,7 +397,7 @@ sudo systemctl enable --now railmap-warmup.timer
 systemctl list-timers railmap-warmup --no-pager
 ```
 
-Test immédiat (long, ~15 min par source) :
+Test immédiat (~3 min 20 au total) :
 
 ```bash
 sudo systemctl start railmap-warmup.service
@@ -423,7 +429,7 @@ plafond de 100 s de Cloudflare rendrait le préchauffage impossible.
   SQLite** (correctif A, cf. commentaire à `Sources/App/FeedManager.swift:52`), donc
   persister la base n'éviterait pas la ré-ingestion — elle ne ferait que remplir le
   disque. Conséquence pratique : **tout redémarrage du conteneur repart sur un
-  cache froid**, ~15 min d'ingestion avant que les tracés soient bons. À ne pas
+  cache froid**, ~3 min 20 d'ingestion avant que les tracés soient bons. À ne pas
   faire pendant la beta. Le jour où le correctif B atterrit, ajouter un bind mount
   vers `/mnt/ssd/railmap/` deviendra utile.
 - **Reboot du Pi** : `restart: unless-stopped` sur le conteneur +
